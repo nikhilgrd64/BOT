@@ -68,7 +68,6 @@ function levenshtein(a, b) {
   const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
   for (let i = 0; i <= a.length; i++) dp[i][0] = i;
   for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-
   for (let i = 1; i <= a.length; i++) {
     for (let j = 1; j <= b.length; j++) {
       dp[i][j] = Math.min(
@@ -92,9 +91,10 @@ async function searchDocs() {
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
-  // Synonyms list — add variations as needed
+  // Synonyms
   const synonyms = {
-    "negative ack": ["neg ack", "negative acknowledgment", "nack"]
+    "negative ack": ["neg ack", "negative acknowledgment", "nack"],
+    // add more synonyms as needed
   };
   
   let terms = query.split(/\s+/).filter(t => t.length > 0);
@@ -107,35 +107,38 @@ async function searchDocs() {
   for (const file of docs) {
     const text = fileTexts[file.name];
     if (!text) continue;
-
     const lower = text.toLowerCase();
+
     let matches = [];
-
     allTerms.forEach(term => {
-      // Tolerance based on length
       const tolerance = term.length <= 7 ? 2 : 3;
-
-      // Scan all words and check fuzzy match
       const words = lower.split(/\W+/); 
-      words.forEach((word, index) => {
+      words.forEach((word) => {
         if (levenshtein(term, word) <= tolerance) {
-          let charIndex = lower.indexOf(word); // approximate first occurrence
-          matches.push(charIndex);
+          let charIndex = lower.indexOf(word); 
+          if (charIndex !== -1) matches.push(charIndex); 
         }
       });
     });
 
-    matches = matches.sort((a,b)=>a-b).slice(0,3); // top 3 matches
+    // ✨ Deduplicate matches
+    matches = [...new Set(matches)].sort((a, b) => a - b).slice(0, 3);
+
     if (matches.length) {
       foundSomething = true;
       const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
       resultsHtml += `<strong>${file.name}</strong><br><em>${summary}</em><ul>`;
+
+      let seenSentences = new Set();
 
       matches.forEach((index) => {
         let sentenceStart = text.lastIndexOf('.', index) + 1;
         let sentenceEnd = text.indexOf('.', index) + 1;
         if (sentenceEnd === 0) sentenceEnd = text.length;
         let sentence = text.substring(sentenceStart, sentenceEnd).trim();
+
+        if (seenSentences.has(sentence)) return;
+        seenSentences.add(sentence);
 
         allTerms.forEach(term => {
           const regex = new RegExp(`(${term})`, 'gi');
