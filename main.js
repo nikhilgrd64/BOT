@@ -4,15 +4,15 @@ console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
 // List your files
 const docs = [
-  { name: "Abbrevation.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Abbrevation.pdf" },
-  { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Doubts-in-XML-and-segment.docx" },
-  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/EPI-MPI-AND-EMPI.docx" },
-  { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/FHIR-MPI-and-MRN.docx" },
-  { name: "Formats-HL7-records.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Formats-HL7-records.docx" },
+  { name: "Abbrevation.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Abbrevation.pdf" },
+  { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx" },
+  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx" },
+  { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx" },
+  { name: "Formats-HL7-records.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx" },
   { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf" },
-  { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/HL7-course.pptx" },
-  { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf" },
-  { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Interface-Design-Document.docx" },
+  { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-course.pptx" },
+  { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf" },
+  { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx" },
 ];
 
 let fileTexts = {};
