@@ -4,7 +4,7 @@ console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
 // List your files
 const docs = [
-  { name: "Abbrevation.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Abbrevation.pdf" },
+  { name: "Abbrevation.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Abbrevation.PDF" },
   { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx" },
   { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx" },
   { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx" },
