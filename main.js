@@ -65,6 +65,8 @@ async function searchDocs() {
     const text = fileTexts[file.name];
     const lower = text.toLowerCase();
 
+    // Extract first paragraph as summary
+    const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
     let matches = [];
     terms.forEach(term => {
       let idx = lower.indexOf(term);
@@ -74,10 +76,11 @@ async function searchDocs() {
       }
     });
 
-    matches = matches.sort((a,b)=>a-b).slice(0,3); // show up to 3 matches
+    matches = matches.sort((a,b)=>a-b).slice(0,3); // up to 3 matches
     if (matches.length) {
       foundSomething = true;
-      resultsHtml += `<strong>${file.name}</strong><ul>`;
+      resultsHtml += `<strong>${file.name}</strong><br><em>${summary}</em><ul>`;
+
       matches.forEach((index) => {
         let sentenceStart = text.lastIndexOf('.', index) + 1;
         let sentenceEnd = text.indexOf('.', index) + 1;
@@ -91,7 +94,8 @@ async function searchDocs() {
 
         resultsHtml += `<li>${sentence}</li>`;
       });
-      resultsHtml += `</ul>`;
+
+      resultsHtml += `</ul><a href="${file.url}" target="_blank">📂 View full file</a><hr>`;
     }
   }
 
