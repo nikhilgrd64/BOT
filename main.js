@@ -15,6 +15,7 @@ const docs = [
 
 let fileTexts = {};
 
+// Helper to add messages
 function addMessage(content, sender='bot') {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
@@ -23,7 +24,7 @@ function addMessage(content, sender='bot') {
   msgDiv.scrollIntoView();
 }
 
-// Extract text
+// Extract text from PDF or DOCX
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -38,42 +39,38 @@ async function extractText(name, buffer) {
     const result = await mammoth.extractRawText({ arrayBuffer: buffer });
     return result.value;
   } else {
-    console.warn(`Skipping unsupported file format: ${name}`);
-    return null;
+    return "";
   }
 }
 
-// Fetch files
+// Load all files into memory
 async function loadFiles() {
   for (const file of docs) {
     if (!fileTexts[file.name]) {
       try {
         const resp = await fetch(file.url);
-        if (!resp.ok) throw new Error(`Failed to load ${file.name}: ${resp.status}`);
+        if (!resp.ok) throw new Error(`Error ${resp.status}: failed to load ${file.name}`);
         const buffer = await resp.arrayBuffer();
         fileTexts[file.name] = await extractText(file.name, buffer);
         console.log(`✅ Loaded file: ${file.name}`);
-      } catch (err) {
-        fileTexts[file.name] = null; // explicitly mark as failed
-        console.error(err.message);
+      } catch (error) {
+        fileTexts[file.name] = null;
+        console.error(error.message);
       }
     }
   }
 }
 
-// Search
+// Search and output into bot
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
   if (!query) return;
 
-  addMessage(queryInput.value, 'user'); 
+  addMessage(queryInput.value, 'user'); // show user query
   queryInput.value = '';
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
-
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = '';
 
   let foundSomething = false;
 
@@ -88,34 +85,28 @@ async function searchDocs() {
 
     let matches = sentences.filter(sentence => {
       const lower = sentence.toLowerCase();
-
-      // Split the query into words
       const terms = query.split(/\s+/).filter(Boolean);
-
-      // Check each term against variations
       return terms.every(term => {
-        if (term === 'ack') {
-          return lower.includes('ack') || lower.includes('acknowledg');
-        } else if (term === 'negative') {
-          return lower.includes('negative');
-        } else {
-          return lower.includes(term); // generic terms like epi, mpi, fhir
-        }
+        if (term === "ack") return lower.includes('ack') || lower.includes('acknowledg');
+        return lower.includes(term);
       });
     });
 
     if (matches.length > 0) {
       foundSomething = true;
-      resultsDiv.innerHTML += `<h3>${file.name}</h3><ul>`;
+
+      let botMessage = `<h4>${file.name}</h4><ul>`;
       matches.slice(0, 5).forEach(sentence => {
-        resultsDiv.innerHTML += `<li>${sentence}</li>`;
+        botMessage += `<li>${sentence}</li>`;
       });
-      resultsDiv.innerHTML += `</ul><a href="${file.url}" target="_blank">📂 View full file</a><hr>`;
+      botMessage += `</ul><a href="${file.url}" target="_blank">📂 View full file</a>`;
+
+      addMessage(botMessage, 'bot'); // send bot's reply
     }
   }
 
   if (!foundSomething) {
-    resultsDiv.innerHTML = `No matches found for <strong>${query}</strong>.`;
+    addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
   }
 
   document.getElementById('loading').style.display = 'none';
