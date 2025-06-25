@@ -47,32 +47,61 @@ async function loadFiles() {
 }
 
 // Search
+// 🔍 Search docs and show excerpts
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
   if (!query) return;
 
-  addMessage(queryInput.value, 'user');
+  addMessage(queryInput.value, 'user'); // show user input
   queryInput.value = '';
   document.getElementById('loading').style.display = 'block';
 
   await loadFiles();
 
   const terms = query.split(/\s+/).filter(t => t.length > 0);
-  let matches = [];
+
+  let foundSomething = false;
 
   for (const file of docs) {
     const text = fileTexts[file.name].toLowerCase();
     if (terms.every(t => text.includes(t))) {
-      matches.push(file.name);
+      foundSomething = true;
+
+      // 📜 Show up to 3 snippets
+      let snippetMessages = [];
+      for (const term of terms) {
+        let index = text.indexOf(term);
+        if (index !== -1) {
+          let snippet = fileTexts[file.name].substring(
+            Math.max(0, index - 100),
+            index + 100
+          );
+
+          // ✅ Highlight matches
+          terms.forEach(t => {
+            const regex = new RegExp(`(${t})`, 'gi');
+            snippet = snippet.replace(regex, '<mark>$1</mark>');
+          });
+
+          snippetMessages.push(
+            `<strong>${file.name}</strong><br>...${snippet}...`
+          );
+        }
+      }
+
+      // 📣 Add bot message with snippet excerpts
+      addMessage(
+        snippetMessages.length ? snippetMessages.join('<hr>') : `Found in ${file.name}.`,
+        'bot'
+      );
     }
   }
 
-  document.getElementById('loading').style.display = 'none';
-
-  if (matches.length) {
-    addMessage(`Found matches in: <ul>${matches.map(m => `<li><a href="${docs.find(f => f.name===m).url}" target="_blank">${m}</a></li>`).join('')}</ul>`);
-  } else {
-    addMessage(`No matches found for <mark>${query}</mark>.`);
+  if (!foundSomething) {
+    addMessage(`No matches found for <mark>${query}</mark>.`, 'bot');
   }
+
+  document.getElementById('loading').style.display = 'none';
 }
+
