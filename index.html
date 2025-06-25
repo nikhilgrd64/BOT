@@ -3,19 +3,30 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Document Bot (GitHub Version)</title>
+<title>Document Bot</title>
+<link rel="icon" href="https://www.google.com/s2/favicons?sz=64&domain=github.com" type="image/png" />
+<style>
+  body { font-family: Arial, sans-serif; padding: 1rem; }
+  #searchQuery { padding: 0.5rem; width: 250px; }
+  #loading { color: #555; margin-top: 0.5rem; display: none; }
+  #results p { padding: 0.25rem 0; }
+</style>
 </head>
 <body>
+
 <h2>Search Docs on GitHub</h2>
 <input id="searchQuery" placeholder="Enter keyword..." />
 <button onclick="searchDocs()">Search</button>
+<div id="loading">Loading files… Please wait.</div>
 
 <h3>Results:</h3>
 <div id="results"></div>
 
-<!-- Dependencies -->
+<!-- ✅ Load PDF.js and Mammoth first -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.358/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
+<!-- ✅ Finally load main.js -->
 <script src="./main.js"></script>
 </body>
 </html>
