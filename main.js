@@ -2,8 +2,8 @@
 
 // 📝 List your files here:
 const docs = [
-  { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/YOUR_USERNAME/document-bot-files/main/docs/HL7-Error-Handling-Guide.pdf" },
-  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/YOUR_USERNAME/document-bot-files/main/docs/EPI-MPI-AND-EMPI.docx" }
+  { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/document-bot-files/main/docs/HL7-Error-Handling-Guide.pdf" },
+  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/document-bot-files/main/docs/EPI-MPI-AND-EMPI.docx" }
 ];
 
 // 📂 Pre-extracted text cache
