@@ -47,61 +47,59 @@ async function loadFiles() {
 }
 
 // Search
-// 🔍 Search docs and show excerpts
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
   if (!query) return;
 
-  addMessage(queryInput.value, 'user'); // show user input
+  addMessage(queryInput.value, 'user'); 
   queryInput.value = '';
   document.getElementById('loading').style.display = 'block';
-
   await loadFiles();
 
   const terms = query.split(/\s+/).filter(t => t.length > 0);
-
+  let resultsHtml = '';
   let foundSomething = false;
 
   for (const file of docs) {
-    const text = fileTexts[file.name].toLowerCase();
-    if (terms.every(t => text.includes(t))) {
-      foundSomething = true;
+    const text = fileTexts[file.name];
+    const lower = text.toLowerCase();
 
-      // 📜 Show up to 3 snippets
-      let snippetMessages = [];
-      for (const term of terms) {
-        let index = text.indexOf(term);
-        if (index !== -1) {
-          let snippet = fileTexts[file.name].substring(
-            Math.max(0, index - 100),
-            index + 100
-          );
-
-          // ✅ Highlight matches
-          terms.forEach(t => {
-            const regex = new RegExp(`(${t})`, 'gi');
-            snippet = snippet.replace(regex, '<mark>$1</mark>');
-          });
-
-          snippetMessages.push(
-            `<strong>${file.name}</strong><br>...${snippet}...`
-          );
-        }
+    let matches = [];
+    terms.forEach(term => {
+      let idx = lower.indexOf(term);
+      while (idx !== -1) {
+        matches.push(idx);
+        idx = lower.indexOf(term, idx + term.length);
       }
+    });
 
-      // 📣 Add bot message with snippet excerpts
-      addMessage(
-        snippetMessages.length ? snippetMessages.join('<hr>') : `Found in ${file.name}.`,
-        'bot'
-      );
+    matches = matches.sort((a,b)=>a-b).slice(0,3); // show up to 3 matches
+    if (matches.length) {
+      foundSomething = true;
+      resultsHtml += `<strong>${file.name}</strong><ul>`;
+      matches.forEach((index) => {
+        let sentenceStart = text.lastIndexOf('.', index) + 1;
+        let sentenceEnd = text.indexOf('.', index) + 1;
+        if (sentenceEnd === 0) sentenceEnd = text.length;
+        let sentence = text.substring(sentenceStart, sentenceEnd).trim();
+
+        terms.forEach(term => {
+          const regex = new RegExp(`(${term})`, 'gi');
+          sentence = sentence.replace(regex, '<strong>$1</strong>');
+        });
+
+        resultsHtml += `<li>${sentence}</li>`;
+      });
+      resultsHtml += `</ul>`;
     }
   }
 
-  if (!foundSomething) {
-    addMessage(`No matches found for <mark>${query}</mark>.`, 'bot');
+  if (foundSomething) {
+    addMessage(resultsHtml, 'bot');
+  } else {
+    addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
   }
 
   document.getElementById('loading').style.display = 'none';
 }
-
