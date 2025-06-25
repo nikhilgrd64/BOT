@@ -62,8 +62,6 @@ async function loadFiles() {
 }
 
 // Search
-// 🔍 Search Docs with synonyms + fuzzy matching
-// 🔍 Search Docs with strict sentence match
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
@@ -74,48 +72,51 @@ async function searchDocs() {
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
-  let resultsHtml = '';
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.innerHTML = '';
+
   let foundSomething = false;
 
   for (const file of docs) {
     const text = fileTexts[file.name];
     if (!text) continue;
 
-    // Break the file into sentences
     const sentences = text
-      .split(/[.!?]\s+/)  // Split by sentence enders
-      .map(s => s.trim());
+      .split(/[.!?]\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length);
 
-    const matches = [];
-    sentences.forEach(sentence => {
+    let matches = sentences.filter(sentence => {
       const lower = sentence.toLowerCase();
-      if (lower.includes('negative') && lower.includes('ack')) {
-        matches.push(sentence);
-      }
+
+      // Split the query into words
+      const terms = query.split(/\s+/).filter(Boolean);
+
+      // Check each term against variations
+      return terms.every(term => {
+        if (term === 'ack') {
+          return lower.includes('ack') || lower.includes('acknowledg');
+        } else if (term === 'negative') {
+          return lower.includes('negative');
+        } else {
+          return lower.includes(term); // generic terms like epi, mpi, fhir
+        }
+      });
     });
 
-    if (matches.length) {
+    if (matches.length > 0) {
       foundSomething = true;
-      const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
-      resultsHtml += `<strong>${file.name}</strong><br><em>${summary}</em><ul>`;
-
-      matches.slice(0, 5).forEach((sentence) => {
-        let highlighted = sentence
-          .replace(/(negative)/gi, '<strong>$1</strong>')
-          .replace(/(ack)/gi, '<strong>$1</strong>');
-        resultsHtml += `<li>${highlighted}</li>`;
+      resultsDiv.innerHTML += `<h3>${file.name}</h3><ul>`;
+      matches.slice(0, 5).forEach(sentence => {
+        resultsDiv.innerHTML += `<li>${sentence}</li>`;
       });
-
-      resultsHtml += `</ul><a href="${file.url}" target="_blank">📂 View full file</a><hr>`;
+      resultsDiv.innerHTML += `</ul><a href="${file.url}" target="_blank">📂 View full file</a><hr>`;
     }
   }
 
-  if (foundSomething) {
-    addMessage(resultsHtml, 'bot');
-  } else {
-    addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
+  if (!foundSomething) {
+    resultsDiv.innerHTML = `No matches found for <strong>${query}</strong>.`;
   }
 
   document.getElementById('loading').style.display = 'none';
 }
-
