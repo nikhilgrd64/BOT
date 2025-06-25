@@ -24,6 +24,16 @@ function addMessage(content, sender='bot') {
   msgDiv.scrollIntoView();
 }
 
+// Highlight terms in a sentence
+function highlightTerms(sentence, terms) {
+  let result = sentence;
+  terms.forEach(term => {
+    const regex = new RegExp(`(${term})`, 'gi');
+    result = result.replace(regex, '<mark>$1</mark>');
+  });
+  return result;
+}
+
 // Extract text from PDF or DOCX
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
@@ -61,7 +71,7 @@ async function loadFiles() {
   }
 }
 
-// Search and output into bot
+// Search Docs
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
@@ -73,6 +83,7 @@ async function searchDocs() {
   await loadFiles();
 
   let foundSomething = false;
+  const terms = query.split(/\s+/).filter(Boolean); // split into terms
 
   for (const file of docs) {
     const text = fileTexts[file.name];
@@ -80,28 +91,26 @@ async function searchDocs() {
 
     const sentences = text
       .split(/[.!?]\s+/)
-      .map(s => s.trim())
-      .filter(s => s.length);
+      .map((s) => s.trim())
+      .filter((s) => s.length);
 
-    let matches = sentences.filter(sentence => {
+    let matches = sentences.filter((sentence) => {
       const lower = sentence.toLowerCase();
-      const terms = query.split(/\s+/).filter(Boolean);
-      return terms.every(term => {
-        if (term === "ack") return lower.includes('ack') || lower.includes('acknowledg');
-        return lower.includes(term);
-      });
+      return terms.every((term) =>
+        term === "ack" ? lower.includes('ack') || lower.includes('acknowledg') : lower.includes(term)
+      );
     });
 
     if (matches.length > 0) {
       foundSomething = true;
-
       let botMessage = `<h4>${file.name}</h4><ul>`;
-      matches.slice(0, 5).forEach(sentence => {
-        botMessage += `<li>${sentence}</li>`;
-      });
-      botMessage += `</ul><a href="${file.url}" target="_blank">📂 View full file</a>`;
 
-      addMessage(botMessage, 'bot'); // send bot's reply
+      matches.slice(0, 5).forEach((sentence) => {
+        botMessage += `<li>${highlightTerms(sentence, terms)}</li>`;
+      });
+
+      botMessage += `</ul><a href="${file.url}" target="_blank">📂 View full file</a>`;
+      addMessage(botMessage, 'bot'); // bot reply
     }
   }
 
