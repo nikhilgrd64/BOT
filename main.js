@@ -12,7 +12,7 @@ const docs = [
   { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf" },
   { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-course.pptx" },
   { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf" },
-  { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx" },
+  { name: "Interface-Design-Document.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx" }
 ];
 
 let fileTexts = {};
@@ -39,6 +39,9 @@ async function extractText(name, buffer) {
   } else if (name.endsWith(".docx")) {
     const result = await mammoth.extractRawText({ arrayBuffer: buffer });
     return result.value;
+  } else {
+    console.warn(`Skipping unsupported file format: ${name}`);
+    return null;
   }
 }
 
@@ -46,9 +49,16 @@ async function extractText(name, buffer) {
 async function loadFiles() {
   for (const file of docs) {
     if (!fileTexts[file.name]) {
-      const resp = await fetch(file.url);
-      const buffer = await resp.arrayBuffer();
-      fileTexts[file.name] = await extractText(file.name, buffer);
+      try {
+        const resp = await fetch(file.url);
+        if (!resp.ok) throw new Error(`Failed to load ${file.name}: ${resp.status}`);
+        const buffer = await resp.arrayBuffer();
+        fileTexts[file.name] = await extractText(file.name, buffer);
+        console.log(`✅ Loaded file: ${file.name}`);
+      } catch (err) {
+        fileTexts[file.name] = null; // explicitly mark as failed
+        console.error(err.message);
+      }
     }
   }
 }
@@ -70,11 +80,16 @@ async function searchDocs() {
 
   for (const file of docs) {
     const text = fileTexts[file.name];
+    if (!text) {
+      console.warn(`No text loaded for ${file.name}, skipping search.`);
+      continue;
+    }
     const lower = text.toLowerCase();
 
-    // Extract first paragraph as summary
+    // Get preview
     const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
     let matches = [];
+
     terms.forEach(term => {
       let idx = lower.indexOf(term);
       while (idx !== -1) {
@@ -83,7 +98,7 @@ async function searchDocs() {
       }
     });
 
-    matches = matches.sort((a,b)=>a-b).slice(0,3); // up to 3 matches
+    matches = matches.sort((a,b)=>a-b).slice(0,3);
     if (matches.length) {
       foundSomething = true;
       resultsHtml += `<strong>${file.name}</strong><br><em>${summary}</em><ul>`;
