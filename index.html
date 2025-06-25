@@ -1,78 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" href="./favicon.ico" type="image/x-icon">
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Document Bot (Chat UI)</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    padding: 2rem;
-  }
-  .chat-box {
-    width: 100%;
-    max-width: 600px;
-    background: white;
-    padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    margin: 0 auto;
-  }
-  .messages {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 0.5rem;
-    background: #fafafa;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-  }
-  .message {
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    margin: 0.25rem 0;
-  }
-  .message.user {
-    background: #007bff;
-    color: white;
-    align-self: flex-end;
-    text-align: right;
-  }
-  .message.bot {
-    background: #e5e5e5;
-    color: #333;
-    text-align: left;
-  }
-  .input-row {
-    margin-top: 1rem;
-    display: flex;
-    gap: 0.5rem;
-  }
-  input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    background: #007bff;
-    color: white;
-    cursor: pointer;
-  }
-  mark {
-    background: yellow;
-    padding: 0 2px;
-  }
-  .loading {
-    color: #555;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-  }
-</style>
+  <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Bot (Chat UI)</title>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
 
@@ -86,7 +19,7 @@
   <div id="loading" class="loading" style="display:none;">🤖 Searching docs…</div>
 </div>
 
-<!-- Dependencies -->
+<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 <script src="./main.js"></script>
