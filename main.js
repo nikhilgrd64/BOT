@@ -13,7 +13,12 @@ const docs = [
 // Cache
 let fileTexts = {};
 
+// Test pdf.js is loaded
 console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
+
+// ✅ Set up the worker source:
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
+
 
 // Extract text helper
 async function extractText(name, buffer) {
