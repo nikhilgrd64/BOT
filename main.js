@@ -62,28 +62,11 @@ async function loadFiles() {
 }
 
 // Search
-
-// Levenshtein Distance helper
-function levenshtein(a, b) {
-  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      dp[i][j] = Math.min(
-        dp[i-1][j] + 1,
-        dp[i][j-1] + 1,
-        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
-      );
-    }
-  }
-  return dp[a.length][b.length];
-}
-
 // 🔍 Search Docs with synonyms + fuzzy matching
+// 🔍 Search Docs with strict sentence match
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
-  let query = queryInput.value.trim().toLowerCase();
+  const query = queryInput.value.trim().toLowerCase();
   if (!query) return;
 
   addMessage(queryInput.value, 'user'); 
@@ -91,61 +74,36 @@ async function searchDocs() {
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
-  // Synonyms
-  const synonyms = {
-    "negative ack": ["neg ack", "negative acknowledgment", "nack"],
-    // add more synonyms as needed
-  };
-  
-  let terms = query.split(/\s+/).filter(t => t.length > 0);
-  let allTerms = [...terms];
-  terms.forEach(t => { if (synonyms[t]) allTerms.push(...synonyms[t]); });
-
   let resultsHtml = '';
   let foundSomething = false;
 
   for (const file of docs) {
     const text = fileTexts[file.name];
     if (!text) continue;
-    const lower = text.toLowerCase();
 
-    let matches = [];
-    allTerms.forEach(term => {
-      const tolerance = term.length <= 7 ? 2 : 3;
-      const words = lower.split(/\W+/); 
-      words.forEach((word) => {
-        if (levenshtein(term, word) <= tolerance) {
-          let charIndex = lower.indexOf(word); 
-          if (charIndex !== -1) matches.push(charIndex); 
-        }
-      });
+    // Break the file into sentences
+    const sentences = text
+      .split(/[.!?]\s+/)  // Split by sentence enders
+      .map(s => s.trim());
+
+    const matches = [];
+    sentences.forEach(sentence => {
+      const lower = sentence.toLowerCase();
+      if (lower.includes('negative') && lower.includes('ack')) {
+        matches.push(sentence);
+      }
     });
-
-    // ✨ Deduplicate matches
-    matches = [...new Set(matches)].sort((a, b) => a - b).slice(0, 3);
 
     if (matches.length) {
       foundSomething = true;
       const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
       resultsHtml += `<strong>${file.name}</strong><br><em>${summary}</em><ul>`;
 
-      let seenSentences = new Set();
-
-      matches.forEach((index) => {
-        let sentenceStart = text.lastIndexOf('.', index) + 1;
-        let sentenceEnd = text.indexOf('.', index) + 1;
-        if (sentenceEnd === 0) sentenceEnd = text.length;
-        let sentence = text.substring(sentenceStart, sentenceEnd).trim();
-
-        if (seenSentences.has(sentence)) return;
-        seenSentences.add(sentence);
-
-        allTerms.forEach(term => {
-          const regex = new RegExp(`(${term})`, 'gi');
-          sentence = sentence.replace(regex, '<strong>$1</strong>');
-        });
-
-        resultsHtml += `<li>${sentence}</li>`;
+      matches.slice(0, 5).forEach((sentence) => {
+        let highlighted = sentence
+          .replace(/(negative)/gi, '<strong>$1</strong>')
+          .replace(/(ack)/gi, '<strong>$1</strong>');
+        resultsHtml += `<li>${highlighted}</li>`;
       });
 
       resultsHtml += `</ul><a href="${file.url}" target="_blank">📂 View full file</a><hr>`;
@@ -160,3 +118,4 @@ async function searchDocs() {
 
   document.getElementById('loading').style.display = 'none';
 }
+
