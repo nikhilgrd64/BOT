@@ -62,9 +62,29 @@ async function loadFiles() {
 }
 
 // Search
+
+// Levenshtein Distance helper
+function levenshtein(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+// 🔍 Search Docs with synonyms + fuzzy matching
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
-  const query = queryInput.value.trim().toLowerCase();
+  let query = queryInput.value.trim().toLowerCase();
   if (!query) return;
 
   addMessage(queryInput.value, 'user'); 
@@ -72,33 +92,43 @@ async function searchDocs() {
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
-  const terms = query.split(/\s+/).filter(t => t.length > 0);
+  // Synonyms list — add variations as needed
+  const synonyms = {
+    "negative ack": ["neg ack", "negative acknowledgment", "nack"]
+  };
+  
+  let terms = query.split(/\s+/).filter(t => t.length > 0);
+  let allTerms = [...terms];
+  terms.forEach(t => { if (synonyms[t]) allTerms.push(...synonyms[t]); });
+
   let resultsHtml = '';
   let foundSomething = false;
 
   for (const file of docs) {
     const text = fileTexts[file.name];
-    if (!text) {
-      console.warn(`No text loaded for ${file.name}, skipping search.`);
-      continue;
-    }
-    const lower = text.toLowerCase();
+    if (!text) continue;
 
-    // Get preview
-    const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
+    const lower = text.toLowerCase();
     let matches = [];
 
-    terms.forEach(term => {
-      let idx = lower.indexOf(term);
-      while (idx !== -1) {
-        matches.push(idx);
-        idx = lower.indexOf(term, idx + term.length);
-      }
+    allTerms.forEach(term => {
+      // Tolerance based on length
+      const tolerance = term.length <= 7 ? 2 : 3;
+
+      // Scan all words and check fuzzy match
+      const words = lower.split(/\W+/); 
+      words.forEach((word, index) => {
+        if (levenshtein(term, word) <= tolerance) {
+          let charIndex = lower.indexOf(word); // approximate first occurrence
+          matches.push(charIndex);
+        }
+      });
     });
 
-    matches = matches.sort((a,b)=>a-b).slice(0,3);
+    matches = matches.sort((a,b)=>a-b).slice(0,3); // top 3 matches
     if (matches.length) {
       foundSomething = true;
+      const summary = text.trim().split(/\n|\r|\r\n/)[0].substring(0,200) + '...';
       resultsHtml += `<strong>${file.name}</strong><br><em>${summary}</em><ul>`;
 
       matches.forEach((index) => {
@@ -107,7 +137,7 @@ async function searchDocs() {
         if (sentenceEnd === 0) sentenceEnd = text.length;
         let sentence = text.substring(sentenceStart, sentenceEnd).trim();
 
-        terms.forEach(term => {
+        allTerms.forEach(term => {
           const regex = new RegExp(`(${term})`, 'gi');
           sentence = sentence.replace(regex, '<strong>$1</strong>');
         });
