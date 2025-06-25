@@ -9,7 +9,7 @@ const docs = [
   { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/EPI-MPI-AND-EMPI.docx" },
   { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/FHIR-MPI-and-MRN.docx" },
   { name: "Formats-HL7-records.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Formats-HL7-records.docx" },
-  { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/HL7-Error-Handling-Guide.pdf" },
+  { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf" },
   { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/HL7-course.pptx" },
   { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf" },
   { name: "HL7-course.pptx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Interface-Design-Document.docx" },
