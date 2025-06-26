@@ -16,23 +16,14 @@ const docs = [
 // Populate file summary list
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
+  fileList.innerHTML = '';
   docs.forEach(doc => {
     const li = document.createElement('li');
-    li.textContent = `${doc.name} — ${doc.summary}`;
+    li.textContent = doc.summary; // Show summary only
     fileList.appendChild(li);
-  });
-
-  // Toggle summary
-  const toggleButton = document.getElementById('toggleSummary');
-  const summaryBox = document.getElementById('fileSummary') || document.getElementById('fileSummary') || document.getElementById('fileSummary');
-  toggleButton.addEventListener('click', () => {
-    const summary = document.getElementById('fileSummary') || document.querySelector('.summary-box');
-    summary.style.display = summary.style.display === 'none' ? 'block' : 'none';
-    toggleButton.textContent = summary.style.display === 'none' ? 'Show' : 'Hide';
   });
 });
 
-let fileTexts = {};
 
 // Helper to add messages
 function addMessage(content, sender='bot') {
