@@ -9,15 +9,14 @@
 </head>
 <body>
   <div class="chat-container">
+
     <!-- Header -->
     <header>
       📄 Document Bot
-      <label class="theme-switch flex items-center space-x-2 cursor-pointer">
+      <label class="theme-switch flex items-center cursor-pointer">
         <span>Dark</span>
         <input id="themeToggle" type="checkbox" class="hidden" />
-        <span class="switch-slider w-12 h-6 bg-gray-200 rounded-full relative transition-colors">
-          <span class="slider-knob absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 transition-transform"></span>
-        </span>
+        <span class="switch-slider"><span class="slider-knob"></span></span>
         <span>Bright</span>
       </label>
     </header>
@@ -36,6 +35,7 @@
     <div id="fileSummary" class="summary-box">
       <h3>📂 Searchable Topics</h3>
       <ul id="fileList"></ul>
+      <button id="toggleSummary">Hide</button>
     </div>
   </div>
 
@@ -43,10 +43,5 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
   <script src="./main.js"></script>
-  <script>
-    document.getElementById('themeToggle').addEventListener('change', (e) => {
-      document.body.classList.toggle('dark', e.target.checked);
-    });
-  </script>
 </body>
 </html>
