@@ -4,14 +4,33 @@ console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
 // List your files
 const docs = [
-  { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx" },
-  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx" },
-  { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx" },
-  { name: "Formats-HL7-records.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx" },
-  { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf" },
-  { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf" },
-  { name: "Interface-Design-Document.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx" }
+  { name: "Doubts-in-XML-and-segment.docx", url: "...", summary: "HL7 XML and segmenting basics" },
+  { name: "EPI-MPI-AND-EMPI.docx", url: "...", summary: "EPI, MPI, and EMPI explained" },
+  { name: "FHIR-MPI-and-MRN.docx", url: "...", summary: "FHIR, MPI, and MRN interoperability" },
+  { name: "Formats-HL7-records.docx", url: "...", summary: "HL7 record types and formats" },
+  { name: "HL7-Error-Handling-Guide.pdf", url: "...", summary: "Handling negative acks and HL7 errors" },
+  { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "...", summary: "Patient ADT interface technical spec" },
+  { name: "Interface-Design-Document.docx", url: "...", summary: "Designing healthcare interface workflows" }
 ];
+
+// Populate file summary list
+document.addEventListener('DOMContentLoaded', () => {
+  const fileList = document.getElementById('fileList');
+  docs.forEach(doc => {
+    const li = document.createElement('li');
+    li.textContent = `${doc.name} — ${doc.summary}`;
+    fileList.appendChild(li);
+  });
+
+  // Toggle summary
+  const toggleButton = document.getElementById('toggleSummary');
+  const summaryBox = document.getElementById('fileSummary') || document.getElementById('fileSummary') || document.getElementById('fileSummary');
+  toggleButton.addEventListener('click', () => {
+    const summary = document.getElementById('fileSummary') || document.querySelector('.summary-box');
+    summary.style.display = summary.style.display === 'none' ? 'block' : 'none';
+    toggleButton.textContent = summary.style.display === 'none' ? 'Show' : 'Hide';
+  });
+});
 
 let fileTexts = {};
 
