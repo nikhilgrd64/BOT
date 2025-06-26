@@ -182,3 +182,30 @@ body.dark .summary-box {
   color: #eaeaea;
 }
 
+.theme-switch {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.switch-slider {
+  background: #ccc;
+  position: relative;
+  cursor: pointer;
+}
+.switch-slider .slider-knob {
+  transition: transform 0.3s;
+}
+.theme-switch input:checked + .switch-slider {
+  background: #007bff;
+}
+.theme-switch input:checked + .switch-slider .slider-knob {
+  transform: translateX(1.5rem);
+}
+
+
