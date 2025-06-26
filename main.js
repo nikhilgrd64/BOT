@@ -2,21 +2,49 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
-// ✅ Declare fileTexts at top level
-let fileTexts = {};  // <- Added this
+// ✅ Global fileTexts store
+let fileTexts = {};
 
-// List your files
+// ✅ List of docs with correct raw URLs
 const docs = [
-  { name: "Doubts-in-XML-and-segment.docx", url: "...", summary: "HL7 XML and segmenting basics" },
-  { name: "EPI-MPI-AND-EMPI.docx", url: "...", summary: "EPI, MPI, and EMPI explained" },
-  { name: "FHIR-MPI-and-MRN.docx", url: "...", summary: "FHIR, MPI, and MRN interoperability" },
-  { name: "Formats-HL7-records.docx", url: "...", summary: "HL7 record types and formats" },
-  { name: "HL7-Error-Handling-Guide.pdf", url: "...", summary: "Handling negative acks and HL7 errors" },
-  { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "...", summary: "Patient ADT interface technical spec" },
-  { name: "Interface-Design-Document.docx", url: "...", summary: "Designing healthcare interface workflows" }
+  {
+    name: "Doubts-in-XML-and-segment.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx",
+    summary: "HL7 XML and segmenting basics"
+  },
+  {
+    name: "EPI-MPI-AND-EMPI.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx",
+    summary: "EPI, MPI, and EMPI explained"
+  },
+  {
+    name: "FHIR-MPI-and-MRN.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx",
+    summary: "FHIR, MPI, and MRN interoperability"
+  },
+  {
+    name: "Formats-HL7-records.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx",
+    summary: "HL7 record types and formats"
+  },
+  {
+    name: "HL7-Error-Handling-Guide.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf",
+    summary: "Handling negative acks and HL7 errors"
+  },
+  {
+    name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
+    summary: "Patient ADT interface technical spec"
+  },
+  {
+    name: "Interface-Design-Document.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx",
+    summary: "Designing healthcare interface workflows"
+  }
 ];
 
-// Populate file summary list
+// ✅ Populate file summary list
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
   fileList.innerHTML = '';
@@ -25,10 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
     li.textContent = doc.summary; // Show summary only
     fileList.appendChild(li);
   });
+
+  // Toggle summary box
+  const toggleButton = document.getElementById('toggleSummary');
+  const summaryBox = document.getElementById('fileSummary');
+  toggleButton.addEventListener('click', () => {
+    summaryBox.style.display = summaryBox.style.display === 'none' ? 'block' : 'none';
+    toggleButton.textContent = summaryBox.style.display === 'none' ? 'Show' : 'Hide';
+  });
 });
 
-
-// Helper to add messages
+// ✅ Helper to add messages
 function addMessage(content, sender='bot') {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
@@ -37,7 +72,7 @@ function addMessage(content, sender='bot') {
   msgDiv.scrollIntoView();
 }
 
-// Highlight terms in a sentence
+// ✅ Highlight terms
 function highlightTerms(sentence, terms) {
   let result = sentence;
   terms.forEach(term => {
@@ -47,7 +82,7 @@ function highlightTerms(sentence, terms) {
   return result;
 }
 
-// Extract text from PDF or DOCX
+// ✅ Extract text from PDF or DOCX
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -61,12 +96,11 @@ async function extractText(name, buffer) {
   } else if (name.endsWith(".docx")) {
     const result = await mammoth.extractRawText({ arrayBuffer: buffer });
     return result.value;
-  } else {
-    return "";
   }
+  return "";
 }
 
-// Load all files into memory
+// ✅ Load all files into memory
 async function loadFiles() {
   for (const file of docs) {
     if (!fileTexts[file.name]) {
@@ -84,7 +118,7 @@ async function loadFiles() {
   }
 }
 
-// Search Docs
+// ✅ Search Docs
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
@@ -96,7 +130,7 @@ async function searchDocs() {
   await loadFiles();
 
   let foundSomething = false;
-  const terms = query.split(/\s+/).filter(Boolean); // split into terms
+  const terms = query.split(/\s+/).filter(Boolean);
 
   for (const file of docs) {
     const text = fileTexts[file.name];
@@ -110,18 +144,18 @@ async function searchDocs() {
     let matches = sentences.filter((sentence) => {
       const lower = sentence.toLowerCase();
       return terms.every((term) =>
-        term === "ack" ? lower.includes('ack') || lower.includes('acknowledg') : lower.includes(term)
+        term === "ack"
+          ? lower.includes('ack') || lower.includes('acknowledg')
+          : lower.includes(term)
       );
     });
 
     if (matches.length > 0) {
       foundSomething = true;
       let botMessage = `<h4>${file.name}</h4><ul>`;
-
       matches.slice(0, 5).forEach((sentence) => {
         botMessage += `<li>${highlightTerms(sentence, terms)}</li>`;
       });
-
       botMessage += `</ul><a href="${file.url}" target="_blank">📂 View full file</a>`;
       addMessage(botMessage, 'bot'); // bot reply
     }
