@@ -156,3 +156,29 @@ mark {
 body.dark .loading {
   color: #bbb;
 }
+
+.summary-box {
+  padding: 0.5rem;
+  background: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.9rem;
+  transition: max-height 0.3s ease;
+}
+.summary-box h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+}
+.summary-box ul {
+  padding-left: 1rem;
+  margin: 0;
+}
+.summary-box ul li {
+  list-style: disc;
+  margin-bottom: 0.2rem;
+}
+body.dark .summary-box {
+  background: #333;
+  border-color: #555;
+  color: #eaeaea;
+}
+
