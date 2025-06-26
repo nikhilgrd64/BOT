@@ -4,24 +4,37 @@
   <link rel="icon" href="./favicon.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document Bot (Chat UI)</title>
+  <title>Document Bot</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-
-<h2>Document Bot</h2>
-<div class="chat-box">
-  <div id="messages" class="messages"></div>
-  <div class="input-row">
-    <input id="searchQuery" placeholder="Ask me something..." />
-    <button onclick="searchDocs()">Send</button>
+  <div class="chat-container">
+    <header>
+      📄 Document Bot
+      <label class="theme-switch">
+        🌞
+        <input id="themeToggle" type="checkbox" />
+        🌜
+      </label>
+    </header>
+    <div id="messages" class="messages"></div>
+    <div id="loading" class="loading" style="display:none;">🤖 Searching docs…</div>
+    <div class="input-row">
+      <input id="searchQuery" placeholder="Ask me something..." />
+      <button onclick="searchDocs()">Send</button>
+    </div>
   </div>
-  <div id="loading" class="loading" style="display:none;">🤖 Searching docs…</div>
-</div>
 
-<!-- Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-<script src="./main.js"></script>
+  <!-- Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <script src="./main.js"></script>
+  <script>
+    // Dark mode toggle
+    const checkbox = document.getElementById('themeToggle');
+    checkbox.addEventListener('change', () => {
+      document.body.classList.toggle('dark', checkbox.checked);
+    });
+  </script>
 </body>
 </html>
