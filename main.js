@@ -1,6 +1,9 @@
-// Test pdf.js loaded
+// Test pdf.js loaded 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
+
+// ✅ Declare fileTexts at top level
+let fileTexts = {};  // <- Added this
 
 // List your files
 const docs = [
