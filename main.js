@@ -175,16 +175,23 @@ function generateDynamicSidebar() {
   docs.forEach(d => {
     const txt = (d.summary + ' ' + d.name).toLowerCase();
 
+    // Categories
     if (/interface|adt/.test(txt)) cats['🧩 Interface Specs'] = (cats['🧩 Interface Specs'] || 0) + 1;
     if (/error|ack/.test(txt)) cats['⚙️ HL7 Troubleshooting'] = (cats['⚙️ HL7 Troubleshooting'] || 0) + 1;
     if (/mpi|empi|fhir/.test(txt)) cats['🧠 Data Interoperability'] = (cats['🧠 Data Interoperability'] || 0) + 1;
     if (/record|patient/.test(txt)) cats['📘 Patient Record Flows'] = (cats['📘 Patient Record Flows'] || 0) + 1;
 
+    // Smart Suggestions (unlimited count)
     if (/adt/.test(txt)) tips.set('🔍 Show ADT message types', 'adt message types');
     if (/ack/.test(txt)) tips.set('⚠️ HL7 ACK handling', 'hl7 ack handling');
     if (/empi/.test(txt)) tips.set('💡 Difference between MPI & EMPI', 'mpi empi difference');
+    if (/xml/.test(txt)) tips.set('📄 XML structure in HL7', 'hl7 xml format');
+    if (/segment/.test(txt)) tips.set('📊 Segment use in HL7', 'hl7 segment types');
+    if (/fhir/.test(txt)) tips.set('🌐 FHIR usage in interoperability', 'fhir data exchange');
+    if (/mrn/.test(txt)) tips.set('🧾 What is MRN?', 'mrn in hl7');
   });
 
+  // Render categories
   const catEl = document.querySelector('.category-list');
   catEl.innerHTML = '';
   for (const [cat, count] of Object.entries(cats)) {
@@ -193,6 +200,7 @@ function generateDynamicSidebar() {
     catEl.appendChild(li);
   }
 
+  // Render tips (all entries)
   const tipsEl = document.querySelector('.tips-list');
   tipsEl.innerHTML = '';
   for (const [label, query] of tips.entries()) {
@@ -205,6 +213,7 @@ function generateDynamicSidebar() {
     tipsEl.appendChild(li);
   }
 }
+
 
 function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
