@@ -177,8 +177,24 @@ body.dark .summary-box {
 .sidebar-right h3, .sidebar-right h4 {
   margin:20px 0 10px;
 }
-.recent-activity ul { list-style:none; padding:0; }
-.recent-activity li { margin:5px 0; }
+
+.recent-activity ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recent-activity li {
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.recent-activity a {
+  color: inherit;
+  text-decoration: underline;
+  display: inline-block;
+}
+
 
 .suggestion-btn {
   background: none;
