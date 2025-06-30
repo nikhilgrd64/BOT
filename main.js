@@ -1,10 +1,7 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
-console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
-// Global fileTexts store
 let fileTexts = {};
 
-// Docs list
 const docs = [
   {
     name: "Doubts-in-XML-and-segment.docx",
@@ -43,7 +40,6 @@ const docs = [
   }
 ];
 
-// Populate file summary list and add toggle listener
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
   fileList.innerHTML = '';
@@ -60,14 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleButton.textContent = summaryBox.style.display === 'none' ? 'Show' : 'Hide';
   });
 
-  // Dark mode listener
   document.getElementById('themeToggle').addEventListener('change', (e) => {
     document.body.classList.toggle('dark', e.target.checked);
   });
 });
 
-// Helper to add messages
-function addMessage(content, sender='bot') {
+function addMessage(content, sender = 'bot') {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
   msgDiv.innerHTML = content;
@@ -75,7 +69,6 @@ function addMessage(content, sender='bot') {
   msgDiv.scrollIntoView();
 }
 
-// Highlight terms in a sentence
 function highlightTerms(sentence, terms) {
   let result = sentence;
   terms.forEach(term => {
@@ -85,7 +78,6 @@ function highlightTerms(sentence, terms) {
   return result;
 }
 
-// Extract text from PDF or DOCX
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -103,7 +95,6 @@ async function extractText(name, buffer) {
   return "";
 }
 
-// Load all files into memory
 async function loadFiles() {
   for (const file of docs) {
     if (!fileTexts[file.name]) {
@@ -121,19 +112,49 @@ async function loadFiles() {
   }
 }
 
-// Search Docs
+// Simple fuzzy match to suggest closest topic summary
+function findClosestSummary(query) {
+  const normalized = query.toLowerCase();
+  let closest = null;
+  let minDistance = Infinity;
+  for (const doc of docs) {
+    const text = doc.summary.toLowerCase();
+    const dist = levenshtein(normalized, text);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = doc;
+    }
+  }
+  return minDistance <= 10 ? closest : null;
+}
+
+// Levenshtein distance (basic typo correction logic)
+function levenshtein(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, () => []);
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + 1);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
   if (!query) return;
 
-  addMessage(queryInput.value, 'user'); // show user query
+  addMessage(queryInput.value, 'user');
   queryInput.value = '';
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
   let foundSomething = false;
-  const terms = query.split(/\s+/).filter(Boolean); 
+  const terms = query.split(/\s+/).filter(Boolean);
 
   for (const file of docs) {
     const text = fileTexts[file.name];
@@ -141,31 +162,34 @@ async function searchDocs() {
 
     const sentences = text
       .split(/[.!?]\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length);
+      .map(s => s.trim())
+      .filter(s => s.length);
 
-    let matches = sentences.filter((sentence) => {
+    const matches = sentences.filter(sentence => {
       const lower = sentence.toLowerCase();
-      return terms.every((term) =>
-        term === "ack"
-          ? lower.includes('ack') || lower.includes('acknowledg')
-          : lower.includes(term)
+      return terms.every(term =>
+        term === "ack" ? lower.includes("ack") || lower.includes("acknowledg") : lower.includes(term)
       );
     });
 
     if (matches.length > 0) {
       foundSomething = true;
       let botMessage = `<h4>${file.name}</h4><ul>`;
-      matches.slice(0, 5).forEach((sentence) => {
+      matches.slice(0, 5).forEach(sentence => {
         botMessage += `<li>${highlightTerms(sentence, terms)}</li>`;
       });
       botMessage += `</ul><a href="${file.url}" target="_blank">📂 View full file</a>`;
-      addMessage(botMessage, 'bot'); // bot reply
+      addMessage(botMessage, 'bot');
     }
   }
 
   if (!foundSomething) {
-    addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
+    const closest = findClosestSummary(query);
+    if (closest) {
+      addMessage(`🤔 Did you mean: <strong>${closest.summary}</strong>?<br/><a href="${closest.url}" target="_blank">📂 View related document</a>`, 'bot');
+    } else {
+      addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
+    }
   }
 
   document.getElementById('loading').style.display = 'none';
