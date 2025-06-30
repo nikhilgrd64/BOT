@@ -1,47 +1,19 @@
-pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
-console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
 
 let fileTexts = {};
-
 const docs = [
-  {
-    name: "Doubts-in-XML-and-segment.docx",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx",
-    summary: "HL7 XML and segmenting basics"
-  },
-  {
-    name: "EPI-MPI-AND-EMPI.docx",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx",
-    summary: "EPI, MPI, and EMPI explained"
-  },
-  {
-    name: "FHIR-MPI-and-MRN.docx",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx",
-    summary: "FHIR, MPI, and MRN interoperability"
-  },
-  {
-    name: "Formats-HL7-records.docx",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx",
-    summary: "HL7 record types and formats"
-  },
-  {
-    name: "HL7-Error-Handling-Guide.pdf",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf",
-    summary: "Handling negative acks and HL7 errors"
-  },
-  {
-    name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
-    summary: "Patient ADT interface technical spec"
-  },
-  {
-    name: "Interface-Design-Document.docx",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx",
-    summary: "Designing healthcare interface workflows"
-  }
+  { name: 'Doubts-in-XML-and-segment.docx', url: 'https://raw...Doubts-in-XML-and-segment.docx', summary: 'HL7 XML and segmenting basics' },
+  { name: 'EPI-MPI-AND-EMPI.docx', url: 'https://raw...EPI-MPI-AND-EMPI.docx', summary: 'EPI, MPI, and EMPI explained' },
+  { name: 'FHIR-MPI-and-MRN.docx', url: 'https://raw...FHIR-MPI-and-MRN.docx', summary: 'FHIR, MPI, and MRN interoperability' },
+  { name: 'Formats-HL7-records.docx', url: 'https://raw...Formats-HL7-records.docx', summary: 'HL7 record types and formats' },
+  { name: 'HL7-Error-Handling-Guide.pdf', url: 'https://raw...HL7-Error-Handling-Guide.pdf', summary: 'Handling negative acks and HL7 errors' },
+  { name: 'Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf', url: 'https://raw...Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf', summary: 'Patient ADT interface technical spec' },
+  { name: 'Interface-Design-Document.docx', url: 'https://raw...Interface-Design-Document.docx', summary: 'Designing healthcare interface workflows' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Populate searchable topics
   const fileList = document.getElementById('fileList');
   docs.forEach(doc => {
     const li = document.createElement('li');
@@ -49,160 +21,151 @@ document.addEventListener('DOMContentLoaded', () => {
     fileList.appendChild(li);
   });
 
-  const toggleButton = document.getElementById('toggleSummary');
-  const summaryBox = document.getElementById('fileSummary');
-  toggleButton.addEventListener('click', () => {
-    summaryBox.style.display = summaryBox.style.display === 'none' ? 'block' : 'none';
-    toggleButton.textContent = summaryBox.style.display === 'none' ? 'Show' : 'Hide';
-  });
+  // Sidebar toggles
+  document.getElementById('toggleLeftSidebar').onclick = () =>
+    document.querySelector('.sidebar-left').classList.toggle('active');
+  document.getElementById('toggleRightSidebar').onclick = () =>
+    document.querySelector('.sidebar-right').classList.toggle('active');
 
-  document.getElementById('themeToggle').addEventListener('change', (e) => {
+  // Summary toggle
+  document.getElementById('toggleSummary').onclick = () => {
+    const sb = document.getElementById('fileSummary');
+    sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('toggleSummary').textContent = sb.style.display === 'none' ? 'Show' : 'Hide';
+  };
+
+  // Theme toggle
+  document.getElementById('themeToggle').onchange = e =>
     document.body.classList.toggle('dark', e.target.checked);
-  });
+
+  generateDynamicSidebar();
 });
 
-function addMessage(content, sender = 'bot') {
-  const msgDiv = document.createElement('div');
-  msgDiv.classList.add('message', sender);
-  msgDiv.innerHTML = content;
-  document.getElementById('messages').appendChild(msgDiv);
-  msgDiv.scrollIntoView();
+function addMessage(html, sender = 'bot') {
+  const msg = document.createElement('div');
+  msg.className = `message ${sender}`;
+  msg.innerHTML = html;
+  document.getElementById('messages').appendChild(msg);
+  msg.scrollIntoView();
 }
 
-function highlightTerms(sentence, terms) {
-  let result = sentence;
-  terms.forEach(term => {
-    const regex = new RegExp(`(${term})`, 'gi');
-    result = result.replace(regex, '<mark>$1</mark>');
+function highlightTerms(text, terms) {
+  terms.forEach(t => {
+    const rx = new RegExp(`(${t})`, 'gi');
+    text = text.replace(rx, '<mark>$1</mark>');
   });
-  return result;
+  return text;
 }
 
-function splitIntoSentences(text) {
-  return text.match(/[^.!?]+[.!?]+/g)?.map(s => s.trim()) || [];
+function splitIntoSentences(txt) {
+  return (txt.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim());
 }
 
-async function extractText(name, buffer) {
-  if (name.endsWith(".pdf")) {
-    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-    let text = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map(i => i.str).join(" ") + " ";
+async function extractText(name, buf) {
+  if (name.endsWith('.pdf')) {
+    const pdf = await pdfjsLib.getDocument({ data:buf }).promise;
+    let out='';
+    for (let i=1; i<=pdf.numPages; i++){
+      const ct = await (await pdf.getPage(i)).getTextContent();
+      out += ct.items.map(i=>i.str).join(' ')+' ';
     }
-    return text;
-  } else if (name.endsWith(".docx")) {
-    const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-    return result.value;
+    return out;
   }
-  return "";
+  const result = await mammoth.extractRawText({ arrayBuffer:buf });
+  return result.value;
 }
 
-async function loadFiles() {
-  for (const file of docs) {
-    if (!fileTexts[file.name]) {
+async function loadFiles(){
+  for(const f of docs){
+    if(!fileTexts[f.name]){
       try {
-        const res = await fetch(file.url);
-        if (!res.ok) throw new Error(`Error ${res.status} loading ${file.name}`);
-        const buffer = await res.arrayBuffer();
-        fileTexts[file.name] = await extractText(file.name, buffer);
-        console.log(`✅ Loaded: ${file.name}`);
-      } catch (e) {
-        console.error(e.message);
-        fileTexts[file.name] = null;
+        const res = await fetch(f.url);
+        if(!res.ok) throw new Error();
+        const buf = await res.arrayBuffer();
+        fileTexts[f.name] = await extractText(f.name, buf);
+      } catch {
+        fileTexts[f.name] = '';
       }
     }
   }
 }
 
 async function searchDocs() {
-  const queryInput = document.getElementById('searchQuery');
-  const query = queryInput.value.trim().toLowerCase();
-  if (!query) return;
+  const qi = document.getElementById('searchQuery');
+  const q = qi.value.trim();
+  if (!q) return;
 
-  addMessage(queryInput.value, 'user');
-  queryInput.value = '';
+  addMessage(q, 'user');
+  qi.value = '';
   document.getElementById('loading').style.display = 'block';
 
   await loadFiles();
-  let foundSomething = false;
-  const terms = query.split(/\s+/).filter(Boolean);
+  const terms = q.toLowerCase().split(/\s+/);
+  let found=false;
 
-  for (const file of docs) {
-    const text = fileTexts[file.name];
-    if (!text) continue;
-
-    const sentences = splitIntoSentences(text);
-    const matches = sentences.filter(sentence => {
-      const lower = sentence.toLowerCase();
-      return terms.every(term =>
-        term === "ack" ? lower.includes('ack') || lower.includes('acknowledg') : lower.includes(term)
-      );
-    });
-
-    if (matches.length > 0) {
-      foundSomething = true;
-      let botMessage = `<h4>${file.name}</h4><ul>`;
-      matches.slice(0, 5).forEach(sentence => {
-        botMessage += `<li>${highlightTerms(sentence, terms)}</li>`;
-      });
-      botMessage += `</ul><a href="${file.url}" target="_blank">📂 View full file</a>`;
-      addMessage(botMessage, 'bot');
+  for(const f of docs) {
+    const txt = fileTexts[f.name] || '';
+    const sents = splitIntoSentences(txt);
+    const matches = sents.filter(s => terms.every(t =>
+      t==='ack' ? /ack|acknowledg/i.test(s) : s.toLowerCase().includes(t)
+    ));
+    if (matches.length) {
+      found=true;
+      let html=`<h4>${f.name}</h4><ul>`;
+      matches.slice(0,5).forEach(s => html += `<li>${highlightTerms(s,terms)}</li>`);
+      html += `</ul><a href="${f.url}" target="_blank">📂 View file</a>`;
+      addMessage(html);
     }
   }
 
-  if (!foundSomething) {
-    const fuse = new Fuse(docs, {
-      keys: ['summary'],
-      threshold: 0.4,
-      includeScore: true,
-    });
-
-    const fuseResults = fuse.search(query);
-    const bestMatch = fuseResults[0]?.item;
-
-    if (bestMatch) {
-      const text = fileTexts[bestMatch.name];
-      const terms = query.split(/\s+/).filter(Boolean);
-
-      if (text) {
-        const sentences = splitIntoSentences(text);
-        const preview = sentences
-          .filter(s => terms.some(t => s.toLowerCase().includes(t)))
-          .slice(0, 5);
-
-        const suggestion = `
-          🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>
-          <ul>${preview.map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul>
-          📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>
-        `;
-        addMessage(suggestion, 'bot');
-      } else {
-        addMessage(`🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>`, 'bot');
-      }
+  if(!found){
+    const fuse = new Fuse(docs, { keys:['summary'], threshold:0.4 });
+    const res=fuse.search(q);
+    if(res.length){
+      const b=res[0].item;
+      const txt=fileTexts[b.name] || '';
+      const preview = splitIntoSentences(txt)
+        .filter(s=>terms.some(t=>s.toLowerCase().includes(t)))
+        .slice(0,5).map(s=>`<li>${highlightTerms(s,terms)}</li>`).join('');
+      addMessage(`🤖 Did you mean <strong>${b.summary}</strong>?<ul>${preview}</ul><a href="${b.url}" target="_blank">View</a>`);
     }
-
-    addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
+    if(!res.length) addMessage(`No matches found for <strong>${q}</strong>.`);
   }
 
   document.getElementById('loading').style.display = 'none';
 }
 
-function normalize(word) {
-  return word.toLowerCase().replace(/s$/, '');
-}
+function generateDynamicSidebar() {
+  const cats = {}, tips = new Set();
+  docs.forEach(d => {
+    const txt=(d.summary+' '+d.name).toLowerCase();
+    if (/interface|adt/.test(txt)) cats['🧩 Interface Specs'] ??=0, cats['🧩 Interface Specs']++;
+    if (/error|ack/.test(txt)) cats['⚙️ HL7 Troubleshooting'] ??=0, cats['⚙️ HL7 Troubleshooting']++;
+    if (/mpi|empi|fhir/.test(txt)) cats['🧠 Data Interoperability'] ??=0, cats['🧠 Data Interoperability']++;
+    if (/record|patient/.test(txt)) cats['📘 Patient Record Flows'] ??=0, cats['📘 Patient Record Flows']++;
+    if (/adt/.test(txt)) tips.add('🔍 "Show ADT message types"');
+    if (/ack/.test(txt)) tips.add('⚠️ "HL7 ACK handling"');
+    if (/empi/.test(txt)) tips.add('💡 "Difference between MPI & EMPI"');
+  });
 
-function similarity(a, b) {
-  const aWords = new Set(a.split(/\s+/).map(normalize));
-  const bWords = new Set(b.split(/\s+/).map(normalize));
-  const common = [...aWords].filter(word => bWords.has(word));
-  return common.length / Math.max(aWords.size, bWords.size);
+  const catEl=document.querySelector('.category-list');
+  catEl.innerHTML='';
+  Object.entries(cats).forEach(([c,n])=>{
+    const li=document.createElement('li');
+    li.textContent = `${c} (${n})`;
+    catEl.appendChild(li);
+  });
+
+  const tipsEl=document.querySelector('.tips-list');
+  tipsEl.innerHTML='';
+  tips.forEach(t=>{
+    const li=document.createElement('li');
+    li.textContent=t;
+    tipsEl.appendChild(li);
+  });
 }
 
 function toggleTheme() {
-  const current = document.body.classList.contains("dark");
-  document.body.classList.toggle("dark", !current);
-  document.getElementById("themeToggle").checked = !current;
+  const isDark = document.body.classList.toggle('dark');
+  document.getElementById('themeToggle').checked = isDark;
 }
-
