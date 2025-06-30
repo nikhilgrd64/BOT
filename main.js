@@ -1,7 +1,11 @@
-pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
+console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
+
+// Global fileTexts store
 let fileTexts = {};
 
+// Docs list
 const docs = [
   {
     name: "Doubts-in-XML-and-segment.docx",
@@ -61,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function addMessage(content, sender = 'bot') {
+function addMessage(content, sender='bot') {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
   msgDiv.innerHTML = content;
@@ -112,37 +116,6 @@ async function loadFiles() {
   }
 }
 
-// Simple fuzzy match to suggest closest topic summary
-function findClosestSummary(query) {
-  const normalized = query.toLowerCase();
-  let closest = null;
-  let minDistance = Infinity;
-  for (const doc of docs) {
-    const text = doc.summary.toLowerCase();
-    const dist = levenshtein(normalized, text);
-    if (dist < minDistance) {
-      minDistance = dist;
-      closest = doc;
-    }
-  }
-  return minDistance <= 10 ? closest : null;
-}
-
-// Levenshtein distance (basic typo correction logic)
-function levenshtein(a, b) {
-  const dp = Array.from({ length: a.length + 1 }, () => []);
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1]
-        ? dp[i - 1][j - 1]
-        : Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + 1);
-    }
-  }
-  return dp[a.length][b.length];
-}
-
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
@@ -160,15 +133,11 @@ async function searchDocs() {
     const text = fileTexts[file.name];
     if (!text) continue;
 
-    const sentences = text
-      .split(/[.!?]\s+/)
-      .map(s => s.trim())
-      .filter(s => s.length);
-
-    const matches = sentences.filter(sentence => {
+    const sentences = text.split(/[.!?]\s+/).map(s => s.trim()).filter(s => s.length);
+    let matches = sentences.filter(sentence => {
       const lower = sentence.toLowerCase();
       return terms.every(term =>
-        term === "ack" ? lower.includes("ack") || lower.includes("acknowledg") : lower.includes(term)
+        term === "ack" ? lower.includes('ack') || lower.includes('acknowledg') : lower.includes(term)
       );
     });
 
@@ -184,13 +153,42 @@ async function searchDocs() {
   }
 
   if (!foundSomething) {
-    const closest = findClosestSummary(query);
-    if (closest) {
-      addMessage(`🤔 Did you mean: <strong>${closest.summary}</strong>?<br/><a href="${closest.url}" target="_blank">📂 View related document</a>`, 'bot');
-    } else {
-      addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
+    let bestMatch = null, bestScore = 0;
+    for (const doc of docs) {
+      const summary = doc.summary.toLowerCase();
+      const sim = similarity(query, summary);
+      if (sim > bestScore) {
+        bestScore = sim;
+        bestMatch = doc;
+      }
     }
+
+    if (bestScore >= 0.6) {
+      const suggestion = \`
+        🤖 Did you mean: <strong>\${bestMatch.summary}</strong>?<br><br>
+        📄 HL7 messages are composed of segments and records that follow a defined format. These formats allow systems to exchange patient and medical data reliably.<br><br>
+        📂 <a href="\${bestMatch.url}" target="_blank">View related doc</a>
+      \`;
+      addMessage(suggestion, 'bot');
+    }
+
+    addMessage(\`No matches found for <strong>\${query}</strong>.\`, 'bot');
   }
 
   document.getElementById('loading').style.display = 'none';
+}
+
+function similarity(a, b) {
+  const longer = a.length > b.length ? a : b;
+  const shorter = a.length > b.length ? b : a;
+  const longerLength = longer.length;
+  if (longerLength === 0) return 1.0;
+  const inter = intersection(a.toLowerCase(), b.toLowerCase());
+  return inter.length / longerLength;
+}
+
+function intersection(a, b) {
+  const aWords = new Set(a.split(/\s+/));
+  const bWords = new Set(b.split(/\s+/));
+  return [...aWords].filter(word => bWords.has(word)).join(' ');
 }
