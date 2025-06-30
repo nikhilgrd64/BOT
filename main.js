@@ -64,8 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('themeToggle').onchange = e =>
     document.body.classList.toggle('dark', e.target.checked);
 
+  // ✅ NEW: Enable Enter key to trigger search
+  document.getElementById('searchQuery').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchDocs();
+    }
+  });
+
   generateDynamicSidebar();
-  renderRecentActivity();
+  renderRecentActivity(); // If you're logging activity 👍
 });
 
 function addMessage(html, sender = 'bot') {
