@@ -180,6 +180,21 @@ body.dark .summary-box {
 .recent-activity ul { list-style:none; padding:0; }
 .recent-activity li { margin:5px 0; }
 
+.suggestion-btn {
+  background: none;
+  border: none;
+  color: #eee;
+  text-align: left;
+  font-size: 0.95rem;
+  padding: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+.suggestion-btn:hover {
+  text-decoration: underline;
+}
+
+
 /* Mobile responsive */
 .sidebar-toggle-btn {
   display:none;
