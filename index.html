@@ -1,53 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" href="./favicon.ico" type="image/x-icon">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Document Bot</title>
+  <link rel="icon" href="./favicon.ico" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="./style.css" />
 </head>
-  
 <body>
   <div class="layout">
     <!-- Left Sidebar -->
     <aside class="sidebar-left">
-      <h2>📚 Topics</h2>
-      <input type="text" placeholder="Search topics..." class="topic-search" />
-      <ul class="topic-list">
-        <li><i class="fas fa-code-branch"></i> HL7 XML & Segments</li>
-        <li><i class="fas fa-id-card-alt"></i> EPI & EMPI Explained</li>
-        <li><i class="fas fa-heartbeat"></i> FHIR Interoperability</li>
-        <li><i class="fas fa-file-alt"></i> HL7 Record Formats</li>
-        <li><i class="fas fa-bug"></i> Error Handling</li>
-      </ul>
+      <h2>📂 Categories</h2>
+      <ul class="category-list"></ul>
+      <h2>💡 Suggestions</h2>
+      <ul class="tips-list"></ul>
     </aside>
 
     <!-- Main Chat App -->
     <main class="main-content">
       <div class="chat-container">
-        <!-- Header -->
         <header>
+          <button id="toggleLeftSidebar" class="sidebar-toggle-btn">☰</button>
           📄 Document Bot
-          <label class="theme-switch flex items-center cursor-pointer">
+          <button id="toggleRightSidebar" class="sidebar-toggle-btn">📝</button>
+          <label class="theme-switch">
             <span>Bright</span>
-            <input id="themeToggle" type="checkbox" class="hidden" />
+            <input id="themeToggle" type="checkbox">
             <span class="switch-slider"><span class="slider-knob"></span></span>
             <span>Dark</span>
           </label>
         </header>
 
-        <!-- Chat messages -->
         <div id="messages" class="messages"></div>
-        <div id="loading" class="loading" style="display:none;">🤖 Searching docs…</div>
+        <div id="loading" class="loading">🤖 Searching docs…</div>
 
-        <!-- Input -->
         <div class="input-row">
           <input id="searchQuery" placeholder="Ask me something..." />
           <button onclick="searchDocs()">Send</button>
         </div>
 
-        <!-- Summary of searchable docs -->
         <div id="fileSummary" class="summary-box">
           <h3>📂 Searchable Topics</h3>
           <ul id="fileList"></ul>
@@ -68,21 +61,15 @@
       </div>
       <div class="recent-activity">
         <h4>🔄 Recent</h4>
-        <ul>
-          <li>Viewed: HL7 Segments</li>
-          <li>Edited: Notes</li>
-          <li>Theme: Dark</li>
-        </ul>
+        <ul></ul>
       </div>
     </aside>
   </div>
 
   <!-- Dependencies -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <script src="./main.js"></script>
 </body>
-
 </html>
