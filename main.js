@@ -78,6 +78,10 @@ function highlightTerms(sentence, terms) {
   return result;
 }
 
+function splitIntoSentences(text) {
+  return text.match(/[^.!?]+[.!?]+/g)?.map(s => s.trim()) || [];
+}
+
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -129,7 +133,7 @@ async function searchDocs() {
     const text = fileTexts[file.name];
     if (!text) continue;
 
-    const sentences = text.split(/[.!?]\s+/).map(s => s.trim()).filter(s => s.length);
+    const sentences = splitIntoSentences(text);
     const matches = sentences.filter(sentence => {
       const lower = sentence.toLowerCase();
       return terms.every(term =>
@@ -149,24 +153,26 @@ async function searchDocs() {
   }
 
   if (!foundSomething) {
-    let bestMatch = null, bestScore = 0;
-    for (const doc of docs) {
-      const score = similarity(query, doc.summary.toLowerCase());
-      if (score > bestScore) {
-        bestScore = score;
-        bestMatch = doc;
-      }
-    }
+    const fuse = new Fuse(docs, {
+      keys: ['summary'],
+      threshold: 0.4,
+      includeScore: true,
+    });
 
-    if (bestScore >= 0.3 && bestMatch) {
+    const fuseResults = fuse.search(query);
+    const bestMatch = fuseResults[0]?.item;
+
+    if (bestMatch) {
       const text = fileTexts[bestMatch.name];
+      const terms = query.split(/\s+/).filter(Boolean);
+
       if (text) {
-        const sentences = text.split(/[.!?]\s+/).map(s => s.trim()).filter(s => s.length);
+        const sentences = splitIntoSentences(text);
         const preview = sentences
           .filter(s => terms.some(t => s.toLowerCase().includes(t)))
           .slice(0, 5);
 
-        let suggestion = `
+        const suggestion = `
           🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>
           <ul>${preview.map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul>
           📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>
@@ -184,7 +190,7 @@ async function searchDocs() {
 }
 
 function normalize(word) {
-  return word.toLowerCase().replace(/s$/, ''); // crude stemmer
+  return word.toLowerCase().replace(/s$/, '');
 }
 
 function similarity(a, b) {
