@@ -64,8 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('themeToggle').onchange = e =>
     document.body.classList.toggle('dark', e.target.checked);
 
-  // ✅ NEW: Enable Enter key to trigger search
-  document.getElementById('searchQuery').addEventListener('keydown', function(e) {
+  document.getElementById('searchQuery').addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
       searchDocs();
@@ -73,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   generateDynamicSidebar();
-  renderRecentActivity(); // If you're logging activity 👍
+  renderRecentActivity();
 });
 
 function addMessage(html, sender = 'bot') {
@@ -137,9 +136,11 @@ async function searchDocs(rawQuery = null, labelOverride = null) {
     addMessage(labelOverride, 'user');
   }
 
-  document.getElementById('loading').style.display = 'block';
+  logRecentActivity('Searched', query); // 👈 NEW: log query regardless of result
 
+  document.getElementById('loading').style.display = 'block';
   await loadFiles();
+
   const terms = query.toLowerCase().split(/\s+/);
   let found = false;
 
@@ -153,7 +154,7 @@ async function searchDocs(rawQuery = null, labelOverride = null) {
       found = true;
       const html = `<h4>${f.name}</h4><ul>${matches.slice(0, 5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul><a href="${f.url}" target="_blank">📂 View file</a>`;
       addMessage(html);
-      logRecentActivity('Viewed', f.name);
+      logRecentActivity('Viewed', f.name, f.url);
     }
   }
 
@@ -169,7 +170,7 @@ async function searchDocs(rawQuery = null, labelOverride = null) {
         .map(s => `<li>${highlightTerms(s, terms)}</li>`)
         .join('');
       addMessage(`🤖 Did you mean <strong>${b.summary}</strong>?<ul>${preview}</ul><a href="${b.url}" target="_blank">📂 View file</a>`);
-      logRecentActivity('Suggested', b.name);
+      logRecentActivity('Suggested', b.name, b.url);
     } else {
       addMessage(`No matches found for <strong>${labelOverride || rawQuery}</strong>.`);
     }
@@ -220,28 +221,38 @@ function generateDynamicSidebar() {
   }
 }
 
-function logRecentActivity(action, filename) {
-  const doc = docs.find(d => d.name === filename);
-  const url = doc?.url || '#';
-  const label = `${action}: ${filename}`;
-  recentActivity.unshift({ label, url });
+function logRecentActivity(action, content, url = null) {
+  const item = {
+    type: action,
+    label: `${action}: ${content}`,
+    url,
+    searchTerm: action === 'Searched' ? content : null
+  };
+  recentActivity.unshift(item);
   if (recentActivity.length > 5) recentActivity.pop();
   renderRecentActivity();
 }
 
 function renderRecentActivity() {
-  const ul = document.getElementById('recentList');
+  const ul = document.querySelector('.recent-activity ul');
   if (!ul) return;
   ul.innerHTML = '';
   recentActivity.forEach(item => {
     const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.textContent = item.label;
-    a.href = item.url;
-    a.target = "_blank";
-    a.style.textDecoration = "underline";
-    a.style.color = "inherit";
-    li.appendChild(a);
+    if (item.url) {
+      const a = document.createElement('a');
+      a.textContent = item.label;
+      a.href = item.url;
+      a.target = "_blank";
+      li.appendChild(a);
+    } else if (item.searchTerm) {
+      const btn = document.createElement('button');
+      btn.textContent = item.label;
+      btn.onclick = () => searchDocs(item.searchTerm, item.label);
+      li.appendChild(btn);
+    } else {
+      li.textContent = item.label;
+    }
     ul.appendChild(li);
   });
 }
