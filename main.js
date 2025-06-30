@@ -229,9 +229,10 @@ function logRecentActivity(action, content, url = null) {
     searchTerm: action === 'Searched' ? content : null
   };
   recentActivity.unshift(item);
-  if (recentActivity.length > 5) recentActivity.pop();
+  // ❌ No limit anymore! Let it grow unlimited.
   renderRecentActivity();
 }
+
 
 function renderRecentActivity() {
   const ul = document.querySelector('.recent-activity ul');
