@@ -42,7 +42,6 @@ const docs = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Populate searchable topics
   const fileList = document.getElementById('fileList');
   docs.forEach(doc => {
     const li = document.createElement('li');
@@ -50,20 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
     fileList.appendChild(li);
   });
 
-  // Sidebar toggles
   document.getElementById('toggleLeftSidebar').onclick = () =>
     document.querySelector('.sidebar-left').classList.toggle('active');
   document.getElementById('toggleRightSidebar').onclick = () =>
     document.querySelector('.sidebar-right').classList.toggle('active');
 
-  // Summary toggle
   document.getElementById('toggleSummary').onclick = () => {
     const sb = document.getElementById('fileSummary');
     sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
     document.getElementById('toggleSummary').textContent = sb.style.display === 'none' ? 'Show' : 'Hide';
   };
 
-  // Theme toggle
   document.getElementById('themeToggle').onchange = e =>
     document.body.classList.toggle('dark', e.target.checked);
 
@@ -92,24 +88,24 @@ function splitIntoSentences(txt) {
 
 async function extractText(name, buf) {
   if (name.endsWith('.pdf')) {
-    const pdf = await pdfjsLib.getDocument({ data:buf }).promise;
-    let out='';
-    for (let i=1; i<=pdf.numPages; i++){
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let out = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
       const ct = await (await pdf.getPage(i)).getTextContent();
-      out += ct.items.map(i=>i.str).join(' ')+' ';
+      out += ct.items.map(i => i.str).join(' ') + ' ';
     }
     return out;
   }
-  const result = await mammoth.extractRawText({ arrayBuffer:buf });
+  const result = await mammoth.extractRawText({ arrayBuffer: buf });
   return result.value;
 }
 
-async function loadFiles(){
-  for(const f of docs){
-    if(!fileTexts[f.name]){
+async function loadFiles() {
+  for (const f of docs) {
+    if (!fileTexts[f.name]) {
       try {
         const res = await fetch(f.url);
-        if(!res.ok) throw new Error();
+        if (!res.ok) throw new Error();
         const buf = await res.arrayBuffer();
         fileTexts[f.name] = await extractText(f.name, buf);
       } catch {
@@ -119,79 +115,95 @@ async function loadFiles(){
   }
 }
 
-async function searchDocs() {
-  const qi = document.getElementById('searchQuery');
-  const q = qi.value.trim();
-  if (!q) return;
+async function searchDocs(rawQuery = null, labelOverride = null) {
+  const queryInput = document.getElementById('searchQuery');
+  const query = rawQuery || queryInput.value.trim().toLowerCase();
+  if (!query) return;
 
-  addMessage(q, 'user');
-  qi.value = '';
+  if (!labelOverride) {
+    addMessage(query, 'user');
+    queryInput.value = '';
+  } else {
+    addMessage(labelOverride, 'user');
+  }
+
   document.getElementById('loading').style.display = 'block';
 
   await loadFiles();
-  const terms = q.toLowerCase().split(/\s+/);
-  let found=false;
+  const terms = query.toLowerCase().split(/\s+/);
+  let found = false;
 
-  for(const f of docs) {
+  for (const f of docs) {
     const txt = fileTexts[f.name] || '';
     const sents = splitIntoSentences(txt);
     const matches = sents.filter(s => terms.every(t =>
-      t==='ack' ? /ack|acknowledg/i.test(s) : s.toLowerCase().includes(t)
+      t === 'ack' ? /ack|acknowledg/i.test(s) : s.toLowerCase().includes(t)
     ));
     if (matches.length) {
-      found=true;
-      let html=`<h4>${f.name}</h4><ul>`;
-      matches.slice(0,5).forEach(s => html += `<li>${highlightTerms(s,terms)}</li>`);
+      found = true;
+      let html = `<h4>${f.name}</h4><ul>`;
+      matches.slice(0, 5).forEach(s => html += `<li>${highlightTerms(s, terms)}</li>`);
       html += `</ul><a href="${f.url}" target="_blank">📂 View file</a>`;
       addMessage(html);
     }
   }
 
-  if(!found){
-    const fuse = new Fuse(docs, { keys:['summary'], threshold:0.4 });
-    const res=fuse.search(q);
-    if(res.length){
-      const b=res[0].item;
-      const txt=fileTexts[b.name] || '';
+  if (!found) {
+    const fuse = new Fuse(docs, { keys: ['summary'], threshold: 0.4 });
+    const res = fuse.search(query);
+    if (res.length) {
+      const b = res[0].item;
+      const txt = fileTexts[b.name] || '';
       const preview = splitIntoSentences(txt)
-        .filter(s=>terms.some(t=>s.toLowerCase().includes(t)))
-        .slice(0,5).map(s=>`<li>${highlightTerms(s,terms)}</li>`).join('');
+        .filter(s => terms.some(t => s.toLowerCase().includes(t)))
+        .slice(0, 5)
+        .map(s => `<li>${highlightTerms(s, terms)}</li>`)
+        .join('');
       addMessage(`🤖 Did you mean <strong>${b.summary}</strong>?<ul>${preview}</ul><a href="${b.url}" target="_blank">View</a>`);
+    } else {
+      addMessage(`No matches found for <strong>${labelOverride || rawQuery}</strong>.`);
     }
-    if(!res.length) addMessage(`No matches found for <strong>${q}</strong>.`);
   }
 
   document.getElementById('loading').style.display = 'none';
 }
 
 function generateDynamicSidebar() {
-  const cats = {}, tips = new Set();
+  const cats = {};
+  const tips = new Map();
+
   docs.forEach(d => {
-    const txt=(d.summary+' '+d.name).toLowerCase();
-    if (/interface|adt/.test(txt)) cats['🧩 Interface Specs'] ??=0, cats['🧩 Interface Specs']++;
-    if (/error|ack/.test(txt)) cats['⚙️ HL7 Troubleshooting'] ??=0, cats['⚙️ HL7 Troubleshooting']++;
-    if (/mpi|empi|fhir/.test(txt)) cats['🧠 Data Interoperability'] ??=0, cats['🧠 Data Interoperability']++;
-    if (/record|patient/.test(txt)) cats['📘 Patient Record Flows'] ??=0, cats['📘 Patient Record Flows']++;
-    if (/adt/.test(txt)) tips.add('🔍 "Show ADT message types"');
-    if (/ack/.test(txt)) tips.add('⚠️ "HL7 ACK handling"');
-    if (/empi/.test(txt)) tips.add('💡 "Difference between MPI & EMPI"');
+    const txt = (d.summary + ' ' + d.name).toLowerCase();
+
+    if (/interface|adt/.test(txt)) cats['🧩 Interface Specs'] = (cats['🧩 Interface Specs'] || 0) + 1;
+    if (/error|ack/.test(txt)) cats['⚙️ HL7 Troubleshooting'] = (cats['⚙️ HL7 Troubleshooting'] || 0) + 1;
+    if (/mpi|empi|fhir/.test(txt)) cats['🧠 Data Interoperability'] = (cats['🧠 Data Interoperability'] || 0) + 1;
+    if (/record|patient/.test(txt)) cats['📘 Patient Record Flows'] = (cats['📘 Patient Record Flows'] || 0) + 1;
+
+    if (/adt/.test(txt)) tips.set('🔍 Show ADT message types', 'adt message types');
+    if (/ack/.test(txt)) tips.set('⚠️ HL7 ACK handling', 'hl7 ack handling');
+    if (/empi/.test(txt)) tips.set('💡 Difference between MPI & EMPI', 'mpi empi difference');
   });
 
-  const catEl=document.querySelector('.category-list');
-  catEl.innerHTML='';
-  Object.entries(cats).forEach(([c,n])=>{
-    const li=document.createElement('li');
-    li.textContent = `${c} (${n})`;
+  const catEl = document.querySelector('.category-list');
+  catEl.innerHTML = '';
+  for (const [cat, count] of Object.entries(cats)) {
+    const li = document.createElement('li');
+    li.textContent = `${cat} (${count})`;
     catEl.appendChild(li);
-  });
+  }
 
-  const tipsEl=document.querySelector('.tips-list');
-  tipsEl.innerHTML='';
-  tips.forEach(t=>{
-    const li=document.createElement('li');
-    li.textContent=t;
+  const tipsEl = document.querySelector('.tips-list');
+  tipsEl.innerHTML = '';
+  for (const [label, query] of tips.entries()) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'suggestion-btn';
+    btn.onclick = () => searchDocs(query, label);
+    li.appendChild(btn);
     tipsEl.appendChild(li);
-  });
+  }
 }
 
 function toggleTheme() {
