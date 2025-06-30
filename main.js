@@ -1,10 +1,8 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
-// Global store for extracted file text
 let fileTexts = {};
 
-// Document metadata
 const docs = [
   {
     name: "Doubts-in-XML-and-segment.docx",
@@ -43,7 +41,6 @@ const docs = [
   }
 ];
 
-// DOM Ready: Populate file list + event listeners
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
   docs.forEach(doc => {
@@ -64,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Helper to show chat messages
 function addMessage(content, sender = 'bot') {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
@@ -73,7 +69,6 @@ function addMessage(content, sender = 'bot') {
   msgDiv.scrollIntoView();
 }
 
-// Highlight matched terms
 function highlightTerms(sentence, terms) {
   let result = sentence;
   terms.forEach(term => {
@@ -83,7 +78,6 @@ function highlightTerms(sentence, terms) {
   return result;
 }
 
-// Extract text from file
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -101,7 +95,6 @@ async function extractText(name, buffer) {
   return "";
 }
 
-// Preload all docs
 async function loadFiles() {
   for (const file of docs) {
     if (!fileTexts[file.name]) {
@@ -119,7 +112,6 @@ async function loadFiles() {
   }
 }
 
-// Search function
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
@@ -167,12 +159,22 @@ async function searchDocs() {
     }
 
     if (bestScore >= 0.6 && bestMatch) {
-      const suggestion = `
-        🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>
-        📄 HL7 messages are composed of segments and records that follow a defined format. These formats allow systems to exchange patient and medical data reliably.<br><br>
-        📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>
-      `;
-      addMessage(suggestion, 'bot');
+      const text = fileTexts[bestMatch.name];
+      if (text) {
+        const sentences = text.split(/[.!?]\s+/).map(s => s.trim()).filter(s => s.length);
+        const preview = sentences
+          .filter(s => terms.some(t => s.toLowerCase().includes(t)))
+          .slice(0, 5);
+
+        let suggestion = `
+          🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>
+          <ul>${preview.map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul>
+          📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>
+        `;
+        addMessage(suggestion, 'bot');
+      } else {
+        addMessage(`🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>`, 'bot');
+      }
     }
 
     addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
@@ -181,7 +183,6 @@ async function searchDocs() {
   document.getElementById('loading').style.display = 'none';
 }
 
-// Basic word-overlap similarity
 function similarity(a, b) {
   const aWords = new Set(a.split(/\s+/));
   const bWords = new Set(b.split(/\s+/));
