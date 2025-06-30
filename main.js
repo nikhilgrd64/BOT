@@ -2,14 +2,43 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
 
 let fileTexts = {};
+
 const docs = [
-  { name: 'Doubts-in-XML-and-segment.docx', url: 'https://raw...Doubts-in-XML-and-segment.docx', summary: 'HL7 XML and segmenting basics' },
-  { name: 'EPI-MPI-AND-EMPI.docx', url: 'https://raw...EPI-MPI-AND-EMPI.docx', summary: 'EPI, MPI, and EMPI explained' },
-  { name: 'FHIR-MPI-and-MRN.docx', url: 'https://raw...FHIR-MPI-and-MRN.docx', summary: 'FHIR, MPI, and MRN interoperability' },
-  { name: 'Formats-HL7-records.docx', url: 'https://raw...Formats-HL7-records.docx', summary: 'HL7 record types and formats' },
-  { name: 'HL7-Error-Handling-Guide.pdf', url: 'https://raw...HL7-Error-Handling-Guide.pdf', summary: 'Handling negative acks and HL7 errors' },
-  { name: 'Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf', url: 'https://raw...Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf', summary: 'Patient ADT interface technical spec' },
-  { name: 'Interface-Design-Document.docx', url: 'https://raw...Interface-Design-Document.docx', summary: 'Designing healthcare interface workflows' }
+  {
+    name: "Doubts-in-XML-and-segment.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx",
+    summary: "HL7 XML and segmenting basics"
+  },
+  {
+    name: "EPI-MPI-AND-EMPI.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx",
+    summary: "EPI, MPI, and EMPI explained"
+  },
+  {
+    name: "FHIR-MPI-and-MRN.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx",
+    summary: "FHIR, MPI, and MRN interoperability"
+  },
+  {
+    name: "Formats-HL7-records.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx",
+    summary: "HL7 record types and formats"
+  },
+  {
+    name: "HL7-Error-Handling-Guide.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf",
+    summary: "Handling negative acks and HL7 errors"
+  },
+  {
+    name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
+    summary: "Patient ADT interface technical spec"
+  },
+  {
+    name: "Interface-Design-Document.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx",
+    summary: "Designing healthcare interface workflows"
+  }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
