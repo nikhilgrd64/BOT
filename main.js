@@ -199,3 +199,10 @@ function similarity(a, b) {
   const common = [...aWords].filter(word => bWords.has(word));
   return common.length / Math.max(aWords.size, bWords.size);
 }
+
+function toggleTheme() {
+  const current = document.body.classList.contains("dark");
+  document.body.classList.toggle("dark", !current);
+  document.getElementById("themeToggle").checked = !current;
+}
+
