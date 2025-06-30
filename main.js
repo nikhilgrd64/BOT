@@ -158,7 +158,7 @@ async function searchDocs() {
       }
     }
 
-    if (bestScore >= 0.6 && bestMatch) {
+    if (bestScore >= 0.3 && bestMatch) {
       const text = fileTexts[bestMatch.name];
       if (text) {
         const sentences = text.split(/[.!?]\s+/).map(s => s.trim()).filter(s => s.length);
@@ -183,9 +183,13 @@ async function searchDocs() {
   document.getElementById('loading').style.display = 'none';
 }
 
+function normalize(word) {
+  return word.toLowerCase().replace(/s$/, ''); // crude stemmer
+}
+
 function similarity(a, b) {
-  const aWords = new Set(a.split(/\s+/));
-  const bWords = new Set(b.split(/\s+/));
+  const aWords = new Set(a.split(/\s+/).map(normalize));
+  const bWords = new Set(b.split(/\s+/).map(normalize));
   const common = [...aWords].filter(word => bWords.has(word));
   return common.length / Math.max(aWords.size, bWords.size);
 }
