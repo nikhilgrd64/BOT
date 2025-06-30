@@ -195,6 +195,10 @@ body.dark .summary-box {
   display: inline-block;
 }
 
+.tips-list li {
+  margin-bottom: 10px;
+}
+
 
 .suggestion-btn {
   background: none;
