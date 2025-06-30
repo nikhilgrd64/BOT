@@ -1,11 +1,10 @@
-
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 console.log('PDF.js loaded:', typeof pdfjsLib !== 'undefined');
 
-// Global fileTexts store
+// Global store for extracted file text
 let fileTexts = {};
 
-// Docs list
+// Document metadata
 const docs = [
   {
     name: "Doubts-in-XML-and-segment.docx",
@@ -44,9 +43,9 @@ const docs = [
   }
 ];
 
+// DOM Ready: Populate file list + event listeners
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
-  fileList.innerHTML = '';
   docs.forEach(doc => {
     const li = document.createElement('li');
     li.textContent = doc.summary;
@@ -65,7 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function addMessage(content, sender='bot') {
+// Helper to show chat messages
+function addMessage(content, sender = 'bot') {
   const msgDiv = document.createElement('div');
   msgDiv.classList.add('message', sender);
   msgDiv.innerHTML = content;
@@ -73,6 +73,7 @@ function addMessage(content, sender='bot') {
   msgDiv.scrollIntoView();
 }
 
+// Highlight matched terms
 function highlightTerms(sentence, terms) {
   let result = sentence;
   terms.forEach(term => {
@@ -82,6 +83,7 @@ function highlightTerms(sentence, terms) {
   return result;
 }
 
+// Extract text from file
 async function extractText(name, buffer) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -89,7 +91,7 @@ async function extractText(name, buffer) {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      text += content.items.map((i) => i.str).join(" ") + " ";
+      text += content.items.map(i => i.str).join(" ") + " ";
     }
     return text;
   } else if (name.endsWith(".docx")) {
@@ -99,23 +101,25 @@ async function extractText(name, buffer) {
   return "";
 }
 
+// Preload all docs
 async function loadFiles() {
   for (const file of docs) {
     if (!fileTexts[file.name]) {
       try {
-        const resp = await fetch(file.url);
-        if (!resp.ok) throw new Error(`Error ${resp.status}: failed to load ${file.name}`);
-        const buffer = await resp.arrayBuffer();
+        const res = await fetch(file.url);
+        if (!res.ok) throw new Error(`Error ${res.status} loading ${file.name}`);
+        const buffer = await res.arrayBuffer();
         fileTexts[file.name] = await extractText(file.name, buffer);
-        console.log(`✅ Loaded file: ${file.name}`);
-      } catch (error) {
+        console.log(`✅ Loaded: ${file.name}`);
+      } catch (e) {
+        console.error(e.message);
         fileTexts[file.name] = null;
-        console.error(error.message);
       }
     }
   }
 }
 
+// Search function
 async function searchDocs() {
   const queryInput = document.getElementById('searchQuery');
   const query = queryInput.value.trim().toLowerCase();
@@ -124,8 +128,8 @@ async function searchDocs() {
   addMessage(queryInput.value, 'user');
   queryInput.value = '';
   document.getElementById('loading').style.display = 'block';
-  await loadFiles();
 
+  await loadFiles();
   let foundSomething = false;
   const terms = query.split(/\s+/).filter(Boolean);
 
@@ -134,7 +138,7 @@ async function searchDocs() {
     if (!text) continue;
 
     const sentences = text.split(/[.!?]\s+/).map(s => s.trim()).filter(s => s.length);
-    let matches = sentences.filter(sentence => {
+    const matches = sentences.filter(sentence => {
       const lower = sentence.toLowerCase();
       return terms.every(term =>
         term === "ack" ? lower.includes('ack') || lower.includes('acknowledg') : lower.includes(term)
@@ -155,40 +159,32 @@ async function searchDocs() {
   if (!foundSomething) {
     let bestMatch = null, bestScore = 0;
     for (const doc of docs) {
-      const summary = doc.summary.toLowerCase();
-      const sim = similarity(query, summary);
-      if (sim > bestScore) {
-        bestScore = sim;
+      const score = similarity(query, doc.summary.toLowerCase());
+      if (score > bestScore) {
+        bestScore = score;
         bestMatch = doc;
       }
     }
 
-    if (bestScore >= 0.6) {
-      const suggestion = \`
-        🤖 Did you mean: <strong>\${bestMatch.summary}</strong>?<br><br>
+    if (bestScore >= 0.6 && bestMatch) {
+      const suggestion = `
+        🤖 Did you mean: <strong>${bestMatch.summary}</strong>?<br><br>
         📄 HL7 messages are composed of segments and records that follow a defined format. These formats allow systems to exchange patient and medical data reliably.<br><br>
-        📂 <a href="\${bestMatch.url}" target="_blank">View related doc</a>
-      \`;
+        📂 <a href="${bestMatch.url}" target="_blank">View related doc</a>
+      `;
       addMessage(suggestion, 'bot');
     }
 
-    addMessage(\`No matches found for <strong>\${query}</strong>.\`, 'bot');
+    addMessage(`No matches found for <strong>${query}</strong>.`, 'bot');
   }
 
   document.getElementById('loading').style.display = 'none';
 }
 
+// Basic word-overlap similarity
 function similarity(a, b) {
-  const longer = a.length > b.length ? a : b;
-  const shorter = a.length > b.length ? b : a;
-  const longerLength = longer.length;
-  if (longerLength === 0) return 1.0;
-  const inter = intersection(a.toLowerCase(), b.toLowerCase());
-  return inter.length / longerLength;
-}
-
-function intersection(a, b) {
   const aWords = new Set(a.split(/\s+/));
   const bWords = new Set(b.split(/\s+/));
-  return [...aWords].filter(word => bWords.has(word)).join(' ');
+  const common = [...aWords].filter(word => bWords.has(word));
+  return common.length / Math.max(aWords.size, bWords.size);
 }
