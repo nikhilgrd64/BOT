@@ -246,33 +246,49 @@ async function searchDocs(rawQuery = null, labelOverride = null) {
 }
 
 function generateDynamicSidebar() {
-  const cats = {};
-  const tips = new Map();
+  const categoryMap = new Map();
 
-  docs.forEach(d => {
-    const txt = (d.summary + ' ' + d.name).toLowerCase();
+  docs.forEach(doc => {
+    const words = doc.summary
+      .toLowerCase()
+      .match(/\b\w{4,}\b/g); // get words with 4+ letters to ignore common ones
 
-    if (/interface|adt/.test(txt)) cats['🧩 Interface Specs'] = (cats['🧩 Interface Specs'] || 0) + 1;
-    if (/error|ack/.test(txt)) cats['⚙️ HL7 Troubleshooting'] = (cats['⚙️ HL7 Troubleshooting'] || 0) + 1;
-    if (/mpi|empi|fhir/.test(txt)) cats['🧠 Data Interoperability'] = (cats['🧠 Data Interoperability'] || 0) + 1;
-    if (/record|patient/.test(txt)) cats['📘 Patient Record Flows'] = (cats['📘 Patient Record Flows'] || 0) + 1;
+    if (!words) return;
 
-    if (/adt/.test(txt)) tips.set('🔍 Show ADT message types', 'adt message types');
-    if (/ack/.test(txt)) tips.set('⚠️ HL7 ACK handling', 'hl7 ack handling');
-    if (/empi/.test(txt)) tips.set('💡 Difference between MPI & EMPI', 'mpi empi difference');
-    if (/xml/.test(txt)) tips.set('📄 XML structure in HL7', 'hl7 xml format');
-    if (/segment/.test(txt)) tips.set('📊 Segment use in HL7', 'hl7 segment types');
-    if (/fhir/.test(txt)) tips.set('🌐 FHIR usage in interoperability', 'fhir data exchange');
-    if (/mrn/.test(txt)) tips.set('🧾 What is MRN?', 'mrn in hl7');
+    for (let word of words) {
+      if (!categoryMap.has(word)) categoryMap.set(word, []);
+      categoryMap.get(word).push(doc);
+    }
   });
+
+  // Sort categories by frequency
+  const sortedCategories = Array.from(categoryMap.entries())
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, 6); // Limit to top 6 categories
 
   const catEl = document.querySelector('.category-list');
   catEl.innerHTML = '';
-  for (const [c, n] of Object.entries(cats)) {
+  for (const [word, items] of sortedCategories) {
     const li = document.createElement('li');
-    li.textContent = `${c} (${n})`;
+    li.textContent = `#${word} (${items.length})`;
+    li.onclick = () => searchDocs(word, `Category: ${word}`);
     catEl.appendChild(li);
   }
+
+  // Suggestions (based on most frequent terms across summaries)
+  const tipsEl = document.querySelector('.tips-list');
+  tipsEl.innerHTML = '';
+  for (const [word, docs] of sortedCategories.slice(0, 4)) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'suggestion-btn';
+    btn.textContent = `🔍 Related to "${word}"`;
+    btn.onclick = () => searchDocs(word, `Explore "${word}"`);
+    li.appendChild(btn);
+    tipsEl.appendChild(li);
+  }
+}
+
 
   const tipsEl = document.querySelector('.tips-list');
   tipsEl.innerHTML = '';
