@@ -202,7 +202,7 @@ async function searchDocs(rawQuery = null, labelOverride = null) {
     addMessage(labelOverride, 'user');
   }
 
-  logRecentActivity('Searched', query); // 👈 NEW: log query regardless of result
+  logRecentActivity('Searched', query);
 
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
@@ -249,22 +249,17 @@ function generateDynamicSidebar() {
   const categoryMap = new Map();
 
   docs.forEach(doc => {
-    const words = doc.summary
-      .toLowerCase()
-      .match(/\b\w{4,}\b/g); // get words with 4+ letters to ignore common ones
-
+    const words = doc.summary.toLowerCase().match(/\b\w{4,}\b/g);
     if (!words) return;
-
     for (let word of words) {
       if (!categoryMap.has(word)) categoryMap.set(word, []);
       categoryMap.get(word).push(doc);
     }
   });
 
-  // Sort categories by frequency
   const sortedCategories = Array.from(categoryMap.entries())
     .sort((a, b) => b[1].length - a[1].length)
-    .slice(0, 6); // Limit to top 6 categories
+    .slice(0, 6);
 
   const catEl = document.querySelector('.category-list');
   catEl.innerHTML = '';
@@ -275,10 +270,9 @@ function generateDynamicSidebar() {
     catEl.appendChild(li);
   }
 
-  // Suggestions (based on most frequent terms across summaries)
   const tipsEl = document.querySelector('.tips-list');
   tipsEl.innerHTML = '';
-  for (const [word, docs] of sortedCategories.slice(0, 4)) {
+  for (const [word] of sortedCategories.slice(0, 4)) {
     const li = document.createElement('li');
     const btn = document.createElement('button');
     btn.className = 'suggestion-btn';
@@ -289,19 +283,6 @@ function generateDynamicSidebar() {
   }
 }
 
-
-  const tipsEl = document.querySelector('.tips-list');
-  tipsEl.innerHTML = '';
-  for (const [label, q] of tips.entries()) {
-    const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.textContent = label;
-    btn.className = 'suggestion-btn';
-    btn.onclick = () => searchDocs(q, label);
-    li.appendChild(btn);
-    tipsEl.appendChild(li);
-  }
-
 function logRecentActivity(action, content, url = null) {
   const item = {
     type: action,
@@ -310,10 +291,8 @@ function logRecentActivity(action, content, url = null) {
     searchTerm: action === 'Searched' ? content : null
   };
   recentActivity.unshift(item);
-  // ❌ No limit anymore! Let it grow unlimited.
   renderRecentActivity();
 }
-
 
 function renderRecentActivity() {
   const ul = document.querySelector('.recent-activity ul');
