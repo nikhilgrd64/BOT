@@ -39,8 +39,74 @@ const docs = [
     name: "Interface-Design-Document.docx",
     url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx",
     summary: "Designing healthcare interface workflows"
+  },
+  {
+    name: "HIE-Monitoring-Tool-SOP.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HIE-Monitoring-Tool-SOP.docx",
+    summary: "Standard operating procedure for HIE monitoring tool"
+  },
+  {
+    name: "J2-Ops-Monitor-Thresholds-and-Management.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/J2-Ops-Monitor-Thresholds-and-Management.docx",
+    summary: "Operations monitoring thresholds and management for J2"
+  },
+  {
+    name: "InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx",
+    summary: "Series-specific GMS Amin interface information"
+  },
+  {
+    name: "IntelliBridge-Enterprise-IBE-Support-SOP.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/IntelliBridge-Enterprise-IBE-Support-SOP.docx",
+    summary: "Support SOP for IntelliBridge Enterprise (IBE)"
+  },
+  {
+    name: "GoAnyWhere-Trobleshooting-Guide.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/GoAnyWhere-Trobleshooting-Guide.docx",
+    summary: "Troubleshooting guide for GoAnywhere"
+  },
+  {
+    name: "Elink-and-Capsule.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Elink-and-Capsule.docx",
+    summary: "Integration guide for Elink and Capsule"
+  },
+  {
+    name: "Charge-Interface-Issues_Operation-Support-Document.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Charge-Interface-Issues_Operation-Support-Document.docx",
+    summary: "Support doc for charge interface issues"
+  },
+  {
+    name: "Ensemble-HIE-Training.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-HIE-Training.docx",
+    summary: "Training document for Ensemble HIE"
+  },
+  {
+    name: "Ensemble-SOP-and-FAQs.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-SOP-and-FAQs.docx",
+    summary: "Standard procedures and FAQs for Ensemble"
+  },
+  {
+    name: "inactive-interfaces.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/inactive-interfaces.docx",
+    summary: "List and details of inactive interfaces"
+  },
+  {
+    name: "Aborting-Message-in-HIE.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Aborting-Message-in-HIE.docx",
+    summary: "Guide on aborting messages in HIE"
+  },
+  {
+    name: "Checkpoints-IBE-reboot.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Checkpoints-IBE-reboot.docx",
+    summary: "Checklist and steps for IBE reboot"
+  },
+  {
+    name: "SOP-for-unplanned-failovers.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/SOP-for-unplanned-failovers.docx",
+    summary: "SOP for managing unplanned failovers"
   }
 ];
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
