@@ -1,54 +1,109 @@
-// PDF.js worker setup
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+// Libraries: PDF.js and Mammoth.js must be included in your HTML
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
 
 let fileTexts = {};
 let recentActivity = [];
 
-// List of document URLs (without predefined summaries)
 const docs = [
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HIE-Monitoring-Tool-SOP.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/J2-Ops-Monitor-Thresholds-and-Management.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/IntelliBridge-Enterprise-IBE-Support-SOP.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/GoAnyWhere-Trobleshooting-Guide.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Elink-and-Capsule.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Charge-Interface-Issues_Operation-Support-Document.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-HIE-Training.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/inactive-interfaces.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Aborting-Message-in-HIE.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Checkpoints-IBE-reboot.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/SOP-for-unplanned-failovers.docx",
-  "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-SOP-and-FAQs.docx"
+  {
+   
+    name: "Doubts-in-XML-and-segment.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx",
+  },
+  {
+    name: "EPI-MPI-AND-EMPI.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx",
+  },
+  {
+    name: "FHIR-MPI-and-MRN.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx",
+  },
+  {
+    name: "Formats-HL7-records.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx",
+  },
+  {
+    name: "HL7-Error-Handling-Guide.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf",
+  },
+  {
+    name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf",
+  },
+  {
+    name: "Interface-Design-Document.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx",
+  },
+  {
+    name: "HIE-Monitoring-Tool-SOP.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HIE-Monitoring-Tool-SOP.docx",
+  },
+  {
+    name: "J2-Ops-Monitor-Thresholds-and-Management.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/J2-Ops-Monitor-Thresholds-and-Management.docx",
+  },
+  {
+    name: "InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx",
+  },
+  {
+    name: "IntelliBridge-Enterprise-IBE-Support-SOP.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/IntelliBridge-Enterprise-IBE-Support-SOP.docx",
+  },
+  {
+    name: "GoAnyWhere-Trobleshooting-Guide.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/GoAnyWhere-Trobleshooting-Guide.docx",
+  },
+  {
+    name: "Elink-and-Capsule.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Elink-and-Capsule.docx",
+  },
+  {
+    name: "Charge-Interface-Issues_Operation-Support-Document.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Charge-Interface-Issues_Operation-Support-Document.docx",
+  },
+  {
+    name: "Ensemble-HIE-Training.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-HIE-Training.docx",
+  },
+  {
+    name: "Ensemble-SOP-and-FAQs.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-SOP-and-FAQs.docx",
+  },
+  {
+    name: "inactive-interfaces.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/inactive-interfaces.docx",
+  },
+  {
+    name: "Aborting-Message-in-HIE.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Aborting-Message-in-HIE.docx",
+  },
+  {
+    name: "Checkpoints-IBE-reboot.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Checkpoints-IBE-reboot.docx",
+    
+  },
+  {
+    name: "SOP-for-unplanned-failovers.docx",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/SOP-for-unplanned-failovers.docx",
+  }
+
+  // Add more documents as needed
 ];
 
-const fileSummaries = {}; // sentence-based summaries per file
-
-function splitIntoSentences(txt) {
-  return (txt.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim());
-}
-
-function extractKeywords(text, count = 5) {
-  const words = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
-  const freq = {};
-  words.forEach(w => freq[w] = (freq[w] || 0) + 1);
-  return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,count).map(([w])=>w);
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadFiles();
+  generateSidebar();
+});
 
 async function extractText(name, buf) {
   if (name.endsWith('.pdf')) {
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
     let out = '';
     for (let i = 1; i <= pdf.numPages; i++) {
-      const ct = await (await pdf.getPage(i)).getTextContent();
-      out += ct.items.map(i => i.str).join(' ') + ' ';
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      out += content.items.map(i => i.str).join(' ') + ' ';
     }
     return out;
   } else {
@@ -58,81 +113,74 @@ async function extractText(name, buf) {
 }
 
 async function loadFiles() {
-  for (const url of docs) {
-    const name = url.split('/').pop();
-    if (!fileTexts[name]) {
-      try {
-        const res = await fetch(url);
-        const buf = await res.arrayBuffer();
-        const text = await extractText(name, buf);
-        fileTexts[name] = text;
-        const sentences = splitIntoSentences(text);
-        fileSummaries[name] = sentences.slice(0,3).join(' ');
-      } catch (e) {
-        fileTexts[name] = '';
-        fileSummaries[name] = '';
-      }
-    }
+  for (const f of docs) {
+    const res = await fetch(f.url);
+    const buf = await res.arrayBuffer();
+    fileTexts[f.name] = await extractText(f.name, buf);
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadFiles();
-  populateSummaryList();
-  generateDynamicSidebar();
-});
-
-function populateSummaryList() {
-  const fileList = document.getElementById('fileList');
-  fileList.innerHTML = '';
-  Object.entries(fileSummaries).forEach(([name, summary]) => {
-    const li = document.createElement('li');
-    li.textContent = `${name}: ${summary}`;
-    fileList.appendChild(li);
-  });
+function extractSummary(text) {
+  const sentences = (text.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim());
+  return sentences.slice(0, 1).join(' ');
 }
 
-function generateDynamicSidebar() {
-  const keywordMap = new Map();
-  Object.entries(fileTexts).forEach(([name, text]) => {
-    const keywords = extractKeywords(text);
-    keywords.forEach(word => {
-      if (!keywordMap.has(word)) keywordMap.set(word, []);
-      keywordMap.get(word).push(name);
-    });
-  });
+function getCategoryIcon(text) {
+  const mapping = [
+    { regex: /\bxml|segment|hl7\b/i, icon: "📄" },
+    { regex: /\bmpi|empi|fhir|mrn|interoperability\b/i, icon: "🧠" },
+    { regex: /\badt|registration|patient\b/i, icon: "🏥" },
+    { regex: /\berror|ack|handling\b/i, icon: "⚠️" },
+    { regex: /\binterface|specification|design\b/i, icon: "⚙️" },
+    { regex: /\bsop|procedure|steps|guide\b/i, icon: "📘" },
+  ];
+  for (const m of mapping) {
+    if (m.regex.test(text)) return m.icon;
+  }
+  return "📁"; // default icon
+}
+
+function generateSidebar() {
+  const summaryList = document.querySelector('.summary-list');
+  summaryList.innerHTML = '';
   
-  const sorted = Array.from(keywordMap.entries()).sort((a,b)=>b[1].length - a[1].length).slice(0,6);
-  const catEl = document.querySelector('.category-list');
-  catEl.innerHTML = '';
-  sorted.forEach(([word, files]) => {
+  docs.forEach(doc => {
+    const text = fileTexts[doc.name] || "";
+    const summary = extractSummary(text);
+    const icon = getCategoryIcon(text);
+    
     const li = document.createElement('li');
-    li.innerHTML = `📁 ${word} (${files.length})`;
-    li.onclick = ()=>searchDocs(word);
-    catEl.appendChild(li);
-  });
-  const tipsEl = document.querySelector('.tips-list');
-  tipsEl.innerHTML = '';
-  sorted.slice(0,4).forEach(([word]) => {
-    const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.className = 'suggestion-btn';
-    btn.innerHTML = `💡 Explore "${word}"`;
-    btn.onclick = ()=>searchDocs(word);
-    li.appendChild(btn);
-    tipsEl.appendChild(li);
+    li.innerHTML = `${icon} <a href="${doc.url}" target="_blank">${summary}</a>`;
+    summaryList.appendChild(li);
   });
 }
 
-function searchDocs(term) {
-  const results = Object.entries(fileTexts).filter(([name, text]) => text.toLowerCase().includes(term.toLowerCase()));
-  const messages = document.getElementById('messages');
-  messages.innerHTML = '';
-  results.forEach(([name, text]) => {
-    const sents = splitIntoSentences(text).filter(s => s.toLowerCase().includes(term.toLowerCase())).slice(0,5);
-    const div = document.createElement('div');
-    div.className = 'message bot';
-    div.innerHTML = `<h4>${name}</h4><ul>${sents.map(s=>`<li>${s}</li>`).join('')}</ul>`;
-    messages.appendChild(div);
+// Suggestions: Top keywords from text
+function generateSuggestions() {
+  const suggestions = document.querySelector('.suggestions-list');
+  suggestions.innerHTML = '';
+
+  let allWords = [];
+  Object.values(fileTexts).forEach(text => {
+    const words = text.match(/\b\w{5,}\b/g);
+    if (words) allWords.push(...words.map(w => w.toLowerCase()));
   });
+  const freq = {};
+  allWords.forEach(w => freq[w] = (freq[w] || 0) + 1);
+
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+  sorted.forEach(([word]) => {
+    const icon = getCategoryIcon(word);
+    const li = document.createElement('li');
+    li.innerHTML = `${icon} <button onclick="searchDocs('${word}')">${word}</button>`;
+    suggestions.appendChild(li);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', generateSuggestions);
+
+function searchDocs(query) {
+  console.log("Search triggered for:", query);
+  // Implement search logic here if needed
 }
