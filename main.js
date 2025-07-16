@@ -301,7 +301,6 @@ function generateDynamicSidebar() {
     li.appendChild(btn);
     tipsEl.appendChild(li);
   }
-}
 
 function logRecentActivity(action, content, url = null) {
   const item = {
