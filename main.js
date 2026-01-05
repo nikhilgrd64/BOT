@@ -108,7 +108,7 @@ const docs = [
    {
     name: "AppendixA-Segments-info.PDF",
     url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.PDF",
-    summary: "AppendixA-Segments-info.PDF"
+    summary: "Data Definition Tables"
   },
 ];
 
@@ -333,4 +333,5 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
 
