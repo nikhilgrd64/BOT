@@ -106,8 +106,8 @@ const docs = [
     summary: "SOP for managing unplanned failovers"
   },
    {
-    name: "AppendixA-Segments-info.PDF",
-    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.PDF",
+    name: "AppendixA-Segments-info.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.pdf",
     summary: "Data Definition Tables"
   },
 ];
@@ -333,5 +333,6 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
 
 
