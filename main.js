@@ -158,22 +158,35 @@ function highlightTerms(text, terms) {
 }
 
 function splitIntoSentences(txt) {
-  return (txt.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim());
+  if (!txt) return [];
+  return txt
+    .replace(/\s+/g, ' ')
+    .split(/(?<=\.)|(?<=\?)|(?<=!)|\n+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 40);
 }
 
 async function extractText(name, buf) {
-  if (name.endsWith('.pdf')) {
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-    let out = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const ct = await (await pdf.getPage(i)).getTextContent();
-      out += ct.items.map(i => i.str).join(' ') + ' ';
+  try {
+    if (name.endsWith('.pdf')) {
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      let out = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const ct = await page.getTextContent();
+        out += ct.items.map(it => it.str).join(' ') + ' ';
+      }
+      return out;
     }
-    return out;
+
+    const result = await mammoth.extractRawText({ arrayBuffer: buf });
+    return result.value || '';
+  } catch (e) {
+    console.error('Extraction failed:', name, e);
+    return '';
   }
-  const result = await mammoth.extractRawText({ arrayBuffer: buf });
-  return result.value;
 }
+
 
 async function loadFiles() {
   for (const f of docs) {
@@ -183,6 +196,7 @@ async function loadFiles() {
         if (!res.ok) throw new Error();
         const buf = await res.arrayBuffer();
         fileTexts[f.name] = await extractText(f.name, buf);
+        console.log(`Loaded: ${f.name} (${fileTexts[f.name].length} chars)`);
       } catch {
         fileTexts[f.name] = '';
       }
@@ -191,55 +205,45 @@ async function loadFiles() {
 }
 
 async function searchDocs(rawQuery = null, labelOverride = null) {
-  const queryInput = document.getElementById('searchQuery');
-  const query = rawQuery || queryInput.value.trim().toLowerCase();
+  const input = document.getElementById('searchQuery');
+  const query = (rawQuery || input.value).trim().toLowerCase();
   if (!query) return;
 
-  if (!labelOverride) {
-    addMessage(query, 'user');
-    queryInput.value = '';
-  } else {
-    addMessage(labelOverride, 'user');
-  }
-
-  logRecentActivity('Searched', query); // 👈 NEW: log query regardless of result
+  addMessage(labelOverride || query, 'user');
+  input.value = '';
 
   document.getElementById('loading').style.display = 'block';
+
   await loadFiles();
 
-  const terms = query.toLowerCase().split(/\s+/);
+  const terms = query.split(/\s+/);
   let found = false;
 
-  for (const f of docs) {
-    const txt = fileTexts[f.name] || '';
-    const sents = splitIntoSentences(txt);
-    const matches = sents.filter(s => terms.every(t =>
-      t === 'ack' ? /ack|acknowledg/i.test(s) : s.toLowerCase().includes(t)
-    ));
-    if (matches.length) {
+  for (const doc of docs) {
+    const text = (fileTexts[doc.name] || '').toLowerCase();
+    if (!text) continue;
+
+    const sentences = splitIntoSentences(text);
+    const hits = sentences.filter(s =>
+      terms.some(t =>
+        t === 'ack'
+          ? /ack|acknowledg/i.test(s)
+          : s.includes(t)
+      )
+    );
+
+    if (hits.length) {
       found = true;
-      const html = `<h4>${f.name}</h4><ul>${matches.slice(0, 5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul><a href="${f.url}" target="_blank">📂 View file</a>`;
-      addMessage(html);
-      logRecentActivity('Viewed', f.name, f.url);
+      addMessage(`
+        <h4>${doc.name}</h4>
+        <ul>${hits.slice(0, 5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul>
+        <a href="${doc.url}" target="_blank">📂 View file</a>
+      `);
     }
   }
 
   if (!found) {
-    const fuse = new Fuse(docs, { keys: ['summary'], threshold: 0.4 });
-    const res = fuse.search(query);
-    if (res.length) {
-      const b = res[0].item;
-      const txt = fileTexts[b.name] || '';
-      const preview = splitIntoSentences(txt)
-        .filter(s => terms.some(t => s.toLowerCase().includes(t)))
-        .slice(0, 5)
-        .map(s => `<li>${highlightTerms(s, terms)}</li>`)
-        .join('');
-      addMessage(`🤖 Did you mean <strong>${b.summary}</strong>?<ul>${preview}</ul><a href="${b.url}" target="_blank">📂 View file</a>`);
-      logRecentActivity('Suggested', b.name, b.url);
-    } else {
-      addMessage(`No matches found for <strong>${labelOverride || rawQuery}</strong>.`);
-    }
+    addMessage(`No document content found for <strong>${query}</strong>.`);
   }
 
   document.getElementById('loading').style.display = 'none';
@@ -328,3 +332,4 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
