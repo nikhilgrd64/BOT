@@ -104,7 +104,12 @@ const docs = [
     name: "SOP-for-unplanned-failovers.docx",
     url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/SOP-for-unplanned-failovers.docx",
     summary: "SOP for managing unplanned failovers"
-  }
+  },
+   {
+    name: "AppendixA-Segments-info.PDF",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.PDF",
+    summary: "AppendixA-Segments-info.PDF"
+  },
 ];
 
 
@@ -328,3 +333,4 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
