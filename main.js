@@ -114,6 +114,95 @@ const docs = [
     url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.pdf",
     summary: "Data Definition Tables"
   },
+  {
+    name: "AppendixC.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixC.pdf",
+    summary: "BNF DESCRIPTIONS OF HL7 VERSION 2.5 ABSTRACT Messages"
+  },
+  {
+    name: "AppendixD.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixD.pdf",
+    summary: "Short Forms and Description"
+  },
+  {
+    name: "CH01.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH01.pdf",
+    summary: "HL7 Introduction"
+  },
+  {
+    name: "CH02.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH02.pdf",
+    summary: "HL7 Control"
+  },
+  {
+    name: "CH02A.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH02A.pdf",
+  },
+  {
+    name: "CH03.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH03.pdf",
+    summary: "Patient Administration"
+  },
+  {
+    name: "CH04.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH04.pdf",
+    summary: "Order Entry"
+  },
+  {
+    name: "CH05.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH05.pdf",
+    summary: "Query"
+  },
+   {
+    name: "CH06.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH06.pdf",
+    summary: "Financial Management"
+  },
+   {
+    name: "CH07.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH07.pdf",
+    summary: "Observation Reporting"
+  },
+  {
+    name: "CH08.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH08.pdf",
+    summary: "Master Files"
+  },
+    {
+    name: "CH09.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH09.pdf",
+    summary: "Document Management"
+  },
+    {
+    name: "CH10.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH10.pdf",
+    summary: "Scheduling"
+  },
+   {
+    name: "CH11.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH11.pdf",
+    summary: "Patient Referral"
+  },
+  {
+    name: "CH12.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH12.pdf",
+    summary: "Patient Care"
+  },
+   {
+    name: "CH13.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH13.pdf",
+    summary: "Clinical Laboratory Automation"
+  },
+  {
+    name: "CH14.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH14.pdf",
+    summary: "Application Management"
+  },
+  {
+    name: "CH15.pdf",
+    url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH15.pdf",
+    summary: "Personnel Management"
+  },
 ];
 
 
@@ -337,6 +426,7 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
 
 
 
