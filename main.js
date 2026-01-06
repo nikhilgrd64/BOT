@@ -2,6 +2,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
 
 let fileTexts = {};
+Object.defineProperty(window, 'fileTexts', {
+  get: () => fileTexts
+});
+
 let recentActivity = [];
 
 const docs = [
@@ -333,6 +337,7 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
 
 
 
