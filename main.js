@@ -304,17 +304,29 @@ function logRecentActivity(action, content) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // hide loading ghost on start
   setLoading(false);
-
-  // categories ready
   generateDynamicSidebar();
-
-  // ensure recent area clean
   renderRecentActivity();
+
+  const themeToggle = document.getElementById("themeToggle");
+
+  if (themeToggle) {
+    themeToggle.addEventListener("change", () => {
+
+      document.body.classList.toggle("dark", themeToggle.checked);
+
+      // knob animation support even if selector changes later
+      const knob = document.querySelector(".slider-knob");
+      if (knob) {
+        knob.style.transform = themeToggle.checked ? "translateX(24px)" : "none";
+      }
+
+    });
+  }
 
 });
 
+
 // expose for onclick shield
-window.searchDocsHybrid = searchDocsHybrid;
 window.logRecentActivity = logRecentActivity;
+
