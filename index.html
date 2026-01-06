@@ -38,18 +38,22 @@
           </label>
         </header>
 
-        <div id="messages" class="messages"></div>
-        <div id="loading" class="loading">🤖 Searching docs…</div>
+      <!-- Result / Answer Area (moved above) -->
+<div id="answerViewer" class="answer-viewer" style="display:none;">
+  <h3>🤖 Result</h3>
+  <div id="docResult"></div>
+</div>
 
-        <div class="input-row">
-          <input id="searchQuery" placeholder="Ask me something..." />
-          <button onclick="searchDocsHybrid()">Send</button>
-        </div>
+<!-- Messages and loading -->
+<div id="messages" class="messages"></div>
+<div id="loading" class="loading">🤖 Searching docs…</div>
 
-        <div id="answerViewer" class="answer-viewer">
-          <h3>🤖 Result</h3>
-          <div id="docResult"></div>
-        </div>
+<!-- Input Row -->
+<div class="input-row">
+  <input id="searchQuery" placeholder="Ask me something..." />
+  <button onclick="searchDocsHybrid()">Send</button>
+</div>
+
 
       </div>
     </main>
@@ -77,4 +81,5 @@
 
 </body>
 </html>
+
 
