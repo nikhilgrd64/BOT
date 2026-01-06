@@ -8,7 +8,7 @@ Object.defineProperty(window, 'fileTexts', {
 
 let recentActivity = [];
 
-const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE"; // ⚠️ exposed in frontend
+const OPENAI_API_KEY = "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"; // ⚠️ exposed in frontend
 
 const docs = [
   // ... your docs array as-is
@@ -255,3 +255,4 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
+
