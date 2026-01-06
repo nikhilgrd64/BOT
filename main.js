@@ -8,11 +8,51 @@ Object.defineProperty(window, 'fileTexts', {
 
 let recentActivity = [];
 
-// ---------------- CONFIG ----------------
-// Replace this with your actual deployed Worker URL
-const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev";
+const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev"; // GPT Worker endpoint
 
-// ---------------- DOM READY ----------------
+const docs = [
+  { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx", summary: "HL7 XML and segmenting basics" },
+  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx", summary: "EPI, MPI, and EMPI explained" },
+  { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx", summary: "FHIR, MPI, and MRN interoperability" },
+  { name: "Formats-HL7-records.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx", summary: "HL7 record types and formats" },
+  { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf", summary: "Handling negative acks and HL7 errors" },
+  { name: "Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Incoming-Patient-Administration-Registration-and-ADT-Interface-Technical-Specification.pdf", summary: "Patient ADT interface technical spec" },
+  { name: "Interface-Design-Document.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx", summary: "Designing healthcare interface workflows" },
+  { name: "HIE-Monitoring-Tool-SOP.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HIE-Monitoring-Tool-SOP.docx", summary: "Standard operating procedure for HIE monitoring tool" },
+  { name: "J2-Ops-Monitor-Thresholds-and-Management.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/J2-Ops-Monitor-Thresholds-and-Management.docx", summary: "Operations monitoring thresholds and management for J2" },
+  { name: "InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx", summary: "Series-specific GMS Amin interface information" },
+  { name: "IntelliBridge-Enterprise-IBE-Support-SOP.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/IntelliBridge-Enterprise-IBE-Support-SOP.docx", summary: "Support SOP for IntelliBridge Enterprise (IBE)" },
+  { name: "GoAnyWhere-Trobleshooting-Guide.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/GoAnyWhere-Trobleshooting-Guide.docx", summary: "Troubleshooting guide for GoAnywhere" },
+  { name: "Elink-and-Capsule.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Elink-and-Capsule.docx", summary: "Integration guide for Elink and Capsule" },
+  { name: "Charge-Interface-Issues_Operation-Support-Document.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Charge-Interface-Issues_Operation-Support-Document.docx", summary: "Support doc for charge interface issues" },
+  { name: "Ensemble-HIE-Training.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-HIE-Training.docx", summary: "Training document for Ensemble HIE" },
+  { name: "Ensemble-SOP-and-FAQs.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Ensemble-SOP-and-FAQs.docx", summary: "Standard procedures and FAQs for Ensemble" },
+  { name: "inactive-interfaces.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/inactive-interfaces.docx", summary: "List and details of inactive interfaces" },
+  { name: "Aborting-Message-in-HIE.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Aborting-Message-in-HIE.docx", summary: "Guide on aborting messages in HIE" },
+  { name: "Checkpoints-IBE-reboot.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Checkpoints-IBE-reboot.docx", summary: "Checklist and steps for IBE reboot" },
+  { name: "SOP-for-unplanned-failovers.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/SOP-for-unplanned-failovers.docx", summary: "SOP for managing unplanned failovers" },
+  { name: "AppendixA-Segments-info.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.pdf", summary: "Data Definition Tables" },
+  { name: "AppendixC.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixC.pdf", summary: "BNF DESCRIPTIONS OF HL7 VERSION 2.5 ABSTRACT Messages" },
+  { name: "AppendixD.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixD.pdf", summary: "Short Forms and Description" },
+  { name: "CH01.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH01.pdf", summary: "HL7 Introduction" },
+  { name: "CH02.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH02.pdf", summary: "HL7 Control" },
+  { name: "CH02A.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH02A.pdf", summary: "HL7 Supplemental Control" },
+  { name: "CH03.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH03.pdf", summary: "Patient Administration" },
+  { name: "CH04.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH04.pdf", summary: "Order Entry" },
+  { name: "CH05.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH05.pdf", summary: "Query" },
+  { name: "CH06.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH06.pdf", summary: "Financial Management" },
+  { name: "CH07.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH07.pdf", summary: "Observation Reporting" },
+  { name: "CH08.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH08.pdf", summary: "Master Files" },
+  { name: "CH09.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH09.pdf", summary: "Document Management" },
+  { name: "CH10.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH10.pdf", summary: "Scheduling" },
+  { name: "CH11.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH11.pdf", summary: "Patient Referral" },
+  { name: "CH12.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH12.pdf", summary: "Patient Care" },
+  { name: "CH13.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH13.pdf", summary: "Clinical Laboratory Automation" },
+  { name: "CH14.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH14.pdf", summary: "Application Management" },
+  { name: "CH15.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH15.pdf", summary: "Personnel Management" }
+];
+
+// ---------------- DOM & Event Setup ----------------
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
   docs.forEach(doc => {
@@ -67,6 +107,7 @@ function splitIntoSentences(txt) {
   return (txt.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim());
 }
 
+// ---------------- File Loading ----------------
 async function extractText(name, buf) {
   if (name.endsWith('.pdf')) {
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
@@ -96,7 +137,7 @@ async function loadFiles() {
   }
 }
 
-// ---------------- WORKER API ----------------
+// ---------------- Hybrid Search + GPT ----------------
 async function askWorker(question, contextChunks) {
   try {
     const res = await fetch(WORKER_URL, {
@@ -112,7 +153,6 @@ async function askWorker(question, contextChunks) {
   }
 }
 
-// ---------------- Hybrid Search + GPT ----------------
 async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
   const queryInput = document.getElementById('searchQuery');
   const query = rawQuery || queryInput.value.trim();
@@ -129,7 +169,6 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
-  // Frontend search highlights
   const terms = query.toLowerCase().split(/\s+/);
   let docMatchesHtml = '';
   for (const f of docs) {
@@ -144,14 +183,12 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
     }
   }
 
-  // Chunk large docs for Worker
   const allText = Object.values(fileTexts).join(' ');
   const contextChunks = [];
   for (let i = 0; i < allText.length; i += 2000) {
     contextChunks.push(allText.slice(i, i + 2000));
   }
 
-  // Ask Worker (safe GPT call)
   const aiAnswer = await askWorker(query, contextChunks);
 
   const finalHtml = `<div style="margin-bottom:1em;"><strong>AI Response:</strong><br>${aiAnswer}</div>
