@@ -1,17 +1,15 @@
+// ---------------- PDF WORKER ----------------
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 
+// ---------------- DATA ----------------
 let fileTexts = {};
-
-// keep your exposure layer exactly as you built
-Object.defineProperty(window, "fileTexts", {
-  get: () => fileTexts
-});
-
+Object.defineProperty(window, "fileTexts", { get: () => fileTexts });
 let recentActivity = [];
 
 const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev"; // GPT Worker endpoint
 
+// ---------------- DOCS ----------------
 const docs = [
   { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx", summary: "HL7 XML and segmenting basics" },
   { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx", summary: "EPI, MPI, and EMPI explained" },
@@ -55,54 +53,45 @@ const docs = [
 ];
 
 // ---------------- HELPERS ----------------
-
 function addMessage(html, sender = "bot") {
   const msg = document.createElement("div");
   msg.className = `message ${sender}`;
   msg.innerHTML = html;
-  document.getElementById("messages").appendChild(msg);
-  msg.scrollIntoView();
+  const container = document.getElementById("messages");
+  if(container){
+    container.appendChild(msg);
+    msg.scrollIntoView({behavior:"smooth"});
+  }
 }
 
 function highlightTerms(text, terms) {
   if (!text || typeof text !== "string") return "";
-
   terms.forEach(t => {
     const rx = new RegExp(`(${t})`, "gi");
     text = text.replace(rx, "<mark>$1</mark>");
   });
-
   return text;
 }
 
-// ---------------- SENTENCE SPLITTER ----------------
-
 function splitIntoSentences(txt) {
   if (!txt) return [];
-  txt = String(txt);
-
   const parts = txt.match(/[^.!?]+[.!?]+/g);
   if (!parts) return [txt.trim()];
-
   return parts.map(s => s.trim());
 }
 
 // ---------------- FILE LOADING ----------------
-
 async function extractText(name, buf) {
   if (name.endsWith(".pdf")) {
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-
     let out = "";
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const ct = await page.getTextContent();
       out += ct.items.map(it => it.str).join(" ") + " ";
     }
-
     return out;
   }
-
   const result = await mammoth.extractRawText({ arrayBuffer: buf });
   return String(result.value || "");
 }
@@ -112,7 +101,6 @@ async function loadFiles() {
     try {
       const res = await fetch(f.url);
       const buf = await res.arrayBuffer();
-
       fileTexts[f.name] = await extractText(f.name, buf);
     } catch {
       fileTexts[f.name] = "";
@@ -120,33 +108,23 @@ async function loadFiles() {
   }
 }
 
-// ---------------- LOADING INDICATOR HANDLER ----------------
-
+// ---------------- LOADING INDICATOR ----------------
 function setLoading(state) {
   const el = document.getElementById("loading");
   if (!el) return;
-
   el.style.display = state ? "block" : "none";
 }
 
 // ---------------- GPT WORKER ----------------
-
 async function askWorker(question, chunks) {
   try {
     const res = await fetch(WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question,
-        docContext: chunks.join(" ")
-      })
+      body: JSON.stringify({ question, docContext: chunks.join(" ") })
     });
-
     const data = await res.json();
-
-    // graceful fallback instead of quota scream
     if (data.error) return "AI service sleeping until quota wakes.";
-
     return data.answer || "No GPT response";
   } catch {
     return "AI worker unreachable.";
@@ -154,140 +132,116 @@ async function askWorker(question, chunks) {
 }
 
 // ---------------- FUSE SEARCH ----------------
-
 function fuseSearch(query) {
   const fuse = new Fuse(
-    Object.keys(fileTexts).map(name => ({
-      name,
-      text: fileTexts[name]
-    })),
-    {
-      keys: ["text","name"],
-      includeScore: true,
-      threshold: 0.4
-    }
+    Object.keys(fileTexts).map(name => ({ name, text: fileTexts[name] })),
+    { keys: ["text", "name"], includeScore: true, threshold: 0.4 }
   );
-
   return fuse.search(query);
 }
 
 // ---------------- HYBRID SEARCH ----------------
-
 async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
-
   const queryInput = document.getElementById("searchQuery");
-  const query = rawQuery || queryInput.value.trim();
-
+  const query = rawQuery || (queryInput ? queryInput.value.trim() : "");
   if (!query) return;
 
   addMessage(labelOverride || query, "user");
-  queryInput.value = "";
+  if(queryInput) queryInput.value = "";
 
   setLoading(true);
-
   await loadFiles();
 
   const terms = query.toLowerCase().split(/\s+/);
-
   let docMatchesHtml = "";
 
-  // classic term based sentence scan
   for (const f of docs) {
     const txt = fileTexts[f.name] || "";
     const sents = splitIntoSentences(txt);
-
-    const matches = sents.filter(s =>
-      terms.every(t => s.toLowerCase().includes(t))
-    );
-
+    const matches = sents.filter(s => terms.every(t => s.toLowerCase().includes(t)));
     if (matches.length) {
-      docMatchesHtml +=
-        `<h4>${f.name}</h4><ul>` +
-        matches.slice(0, 5)
-          .map(s => `<li>${highlightTerms(s, terms)}</li>`)
-          .join("") +
+      docMatchesHtml += `<h4>${f.name}</h4><ul>` +
+        matches.slice(0, 5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join("") +
         `</ul>`;
     }
   }
 
-  // Fuse semantic armor
   const fuseHits = fuseSearch(query);
-
   if (fuseHits.length) {
     docMatchesHtml += `<h4>Fuse Semantic Hits</h4><ul>` +
-      fuseHits.slice(0,5)
-        .map(h => `<li>${h.item.name}</li>`)
-        .join("") +
+      fuseHits.slice(0,5).map(h => `<li>${h.item.name} <button onclick="viewFile('${h.item.name}')">View File</button></li>`).join("") +
       `</ul>`;
   }
 
-  // build chunks for worker
   const allText = Object.values(fileTexts).join(" ");
-
   const chunks = [];
-  for (let i = 0; i < allText.length; i += 2000) {
-    chunks.push(allText.slice(i, i + 2000));
-  }
+  for (let i = 0; i < allText.length; i += 2000) chunks.push(allText.slice(i, i + 2000));
 
   const aiAnswer = await askWorker(query, chunks);
 
   const answerBlock =
-    `<div><strong>AI Response</strong><br>` +
-    aiAnswer +
-    `</div>` +
-    (docMatchesHtml
-      ? `<div><strong>Relevant</strong><br>` + docMatchesHtml + `</div>`
-      : "");
+    `<div><strong>AI Response</strong><br>` + aiAnswer + `</div>` +
+    (docMatchesHtml ? `<div><strong>Relevant</strong><br>` + docMatchesHtml + `</div>` : "");
 
   displayAnswerViewer(answerBlock);
-
+  logRecentActivity("Search", query);
   setLoading(false);
-
 }
 
-// ---------------- CENTER VIEWER ----------------
-
+// ---------------- DISPLAY ANSWER ----------------
 function displayAnswerViewer(html) {
   const viewer = document.getElementById("docResult");
   const area = document.getElementById("answerViewer");
-
   if (!viewer || !area) return;
-
   viewer.innerHTML = html;
   area.style.display = "block";
 }
 
-// ---------------- CATEGORIES ONLY SIDEBAR ----------------
+// ---------------- VIEW FILE ----------------
+function viewFile(fileName) {
+  const file = docs.find(d => d.name === fileName);
+  if (!file) return;
+  window.open(file.url, "_blank");
+}
 
+// ---------------- CATEGORIES SIDEBAR ----------------
 function generateDynamicSidebar() {
   const cats = {};
-
   docs.forEach(d => {
     const c = d.summary || "General";
-    if (!cats[c]) cats[c] = 0;
-    cats[c]++;
+    if (!cats[c]) cats[c] = [];
+    cats[c].push(d.name);
   });
 
   const ul = document.querySelector(".category-list");
   if (!ul) return;
-
   ul.innerHTML = "";
 
   Object.keys(cats).forEach(c => {
     const li = document.createElement("li");
-    li.textContent = `${c} (${cats[c]})`;
+    li.innerHTML = `<a href="#" onclick="populateFilesByCategory('${c}')">${c} (${cats[c].length})</a>`;
     ul.appendChild(li);
   });
 }
 
-// ---------------- RECENT ----------------
+function populateFilesByCategory(category) {
+  const fileList = document.getElementById("fileList");
+  if(!fileList) return;
+  fileList.innerHTML = "";
 
+  const files = docs.filter(d => (d.summary || "General") === category);
+  files.forEach(f => {
+    const li = document.createElement("li");
+    li.innerHTML = `<a href="#" onclick="viewFile('${f.name}')">${f.name}</a>`;
+    fileList.appendChild(li);
+  });
+}
+
+// ---------------- RECENT ----------------
 function renderRecentActivity() {
   const ul = document.getElementById("recentList");
   if (!ul) return;
-
   ul.innerHTML = "";
-
   recentActivity.forEach(item => {
     const li = document.createElement("li");
     li.textContent = item;
@@ -297,36 +251,28 @@ function renderRecentActivity() {
 
 function logRecentActivity(action, content) {
   recentActivity.unshift(action + ": " + content);
+  if (recentActivity.length > 10) recentActivity.pop();
   renderRecentActivity();
 }
 
 // ---------------- INIT ----------------
-
 document.addEventListener("DOMContentLoaded", () => {
-
   setLoading(false);
   generateDynamicSidebar();
   renderRecentActivity();
 
   const themeToggle = document.getElementById("themeToggle");
-
   if (themeToggle) {
     themeToggle.addEventListener("change", () => {
-
       document.body.classList.toggle("dark", themeToggle.checked);
-
-      // knob animation support even if selector changes later
       const knob = document.querySelector(".slider-knob");
-      if (knob) {
-        knob.style.transform = themeToggle.checked ? "translateX(24px)" : "none";
-      }
-
+      if (knob) knob.style.transform = themeToggle.checked ? "translateX(24px)" : "none";
     });
   }
-
 });
 
-
-// expose for onclick shield
+// ---------------- EXPOSE ----------------
 window.logRecentActivity = logRecentActivity;
-
+window.viewFile = viewFile;
+window.searchDocsHybrid = searchDocsHybrid;
+window.populateFilesByCategory = populateFilesByCategory;
