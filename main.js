@@ -54,6 +54,21 @@ const docs = [
   { name: "CH15.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH15.pdf", summary: "Personnel Management" }
 ];
 
+
+// ---------------- PDF WORKER ----------------
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
+
+// ---------------- DATA ----------------
+let fileTexts = {};
+Object.defineProperty(window, "fileTexts", { get: () => fileTexts });
+
+let recentActivity = [];
+
+const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev";
+
+// docs array stays the same as before
+
 // ---------------- HELPERS ----------------
 
 function addMessage(html, sender = "bot") {
@@ -257,6 +272,14 @@ function displayAnswerViewer(html) {
   area.style.display = "block";
 }
 
+// ---------------- VIEW FILE ----------------
+function viewFile(fileName) {
+  const file = docs.find(d => d.name === fileName);
+  if (!file) return;
+  window.open(file.url, "_blank");
+}
+
+
 // ---------------- CATEGORIES ONLY SIDEBAR ----------------
 
 function generateDynamicSidebar() {
@@ -279,6 +302,19 @@ function generateDynamicSidebar() {
     ul.appendChild(li);
   });
 }
+
+function populateFilesByCategory(category) {
+  const fileList = document.getElementById("fileList");
+  fileList.innerHTML = "";
+
+  const files = docs.filter(d => (d.summary || "General") === category);
+  files.forEach(f => {
+    const li = document.createElement("li");
+    li.innerHTML = `<a href="#" onclick="viewFile('${f.name}')">${f.name}</a>`;
+    fileList.appendChild(li);
+  });
+}
+
 
 // ---------------- RECENT ----------------
 
@@ -329,4 +365,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // expose for onclick shield
 window.logRecentActivity = logRecentActivity;
+window.viewFile = viewFile;
+window.searchDocsHybrid = searchDocsHybrid;
+window.populateFilesByCategory = populateFilesByCategory;
+
 
