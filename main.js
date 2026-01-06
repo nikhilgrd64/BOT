@@ -1,8 +1,10 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
 
 let fileTexts = {};
-Object.defineProperty(window, 'fileTexts', {
+
+// keep your exposure layer exactly as you built
+Object.defineProperty(window, "fileTexts", {
   get: () => fileTexts
 });
 
@@ -12,7 +14,7 @@ const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev"; // GPT Wor
 
 const docs = [
   { name: "Doubts-in-XML-and-segment.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Doubts-in-XML-and-segment.docx", summary: "HL7 XML and segmenting basics" },
-  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMPI.docx", summary: "EPI, MPI, and EMPI explained" },
+  { name: "EPI-MPI-AND-EMPI.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/EPI-MPI-AND-EMMPI.docx", summary: "EPI, MPI, and EMPI explained" },
   { name: "FHIR-MPI-and-MRN.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/FHIR-MPI-and-MRN.docx", summary: "FHIR, MPI, and MRN interoperability" },
   { name: "Formats-HL7-records.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Formats-HL7-records.docx", summary: "HL7 record types and formats" },
   { name: "HL7-Error-Handling-Guide.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HL7-Error-Handling-Guide.pdf", summary: "Handling negative acks and HL7 errors" },
@@ -32,7 +34,7 @@ const docs = [
   { name: "Checkpoints-IBE-reboot.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Checkpoints-IBE-reboot.docx", summary: "Checklist and steps for IBE reboot" },
   { name: "SOP-for-unplanned-failovers.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/SOP-for-unplanned-failovers.docx", summary: "SOP for managing unplanned failovers" },
   { name: "AppendixA-Segments-info.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixA-Segments-info.pdf", summary: "Data Definition Tables" },
-  { name: "AppendixC.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixC.pdf", summary: "BNF DESCRIPTIONS OF HL7 VERSION 2.5 ABSTRACT Messages" },
+  { name: "AppendixC.pdf", url: "https://raw.githubusercontent.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixC.pdf", summary: "BNF DESCRIPTIONS OF HL7 VERSION 2.5 ABSTRACT Messages" },
   { name: "AppendixD.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/AppendixD.pdf", summary: "Short Forms and Description" },
   { name: "CH01.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH01.pdf", summary: "HL7 Introduction" },
   { name: "CH02.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH02.pdf", summary: "HL7 Control" },
@@ -47,66 +49,102 @@ const docs = [
   { name: "CH10.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH10.pdf", summary: "Scheduling" },
   { name: "CH11.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH11.pdf", summary: "Patient Referral" },
   { name: "CH12.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH12.pdf", summary: "Patient Care" },
-  { name: "CH13.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH13.pdf", summary: "Clinical Laboratory Automation" },
+  { name: "CH13.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH13.pdf", summary: "Patient Care" },
   { name: "CH14.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH14.pdf", summary: "Application Management" },
   { name: "CH15.pdf", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/CH15.pdf", summary: "Personnel Management" }
 ];
-// ---------------- HELPERS (UNCHANGED) ----------------
 
-function addMessage(html, sender = 'bot') {
-  const msg = document.createElement('div');
+// ---------------- HELPERS (KEEP EXACT BEHAVIOUR) ----------------
+
+function addMessage(html, sender = "bot") {
+  const msg = document.createElement("div");
   msg.className = `message ${sender}`;
   msg.innerHTML = html;
-  document.getElementById('messages').appendChild(msg);
+
+  document.getElementById("messages").appendChild(msg);
   msg.scrollIntoView();
 }
 
 function highlightTerms(text, terms) {
+  if (!text || typeof text !== "string") return "";
+
   terms.forEach(t => {
-    const rx = new RegExp(`(${t})`, 'gi');
-    text = text.replace(rx, '<mark>$1</mark>');
+    const rx = new RegExp(`(${t})`, "gi");
+    text = text.replace(rx, "<mark>$1</mark>");
   });
+
   return text;
 }
 
-function splitIntoSentences(txt) {
-  return (txt.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim());
+// ---------------- SAFE UPDATED SENTENCE SPLITTER ----------------
+
+function splitIntoSentences(input) {
+
+  if (!input) return [];
+
+  let txt =
+    typeof input === "string"
+      ? input
+      : (input.value ? input.value : (input.text ? input.text : ""));
+
+  txt = String(txt);
+
+  const parts = txt.match(/[^.!?]+[.!?]+/g);
+
+  return parts
+    ? parts.map(s => s.trim())
+    : [txt.trim()];
 }
 
-// ---------------- FILE LOADING (UNCHANGED CORE) ----------------
+// ---------------- FILE LOADING ----------------
 
+// FIXED EXTRACTOR TO RETURN STRING
 async function extractText(name, buf) {
-  if (name.endsWith('.pdf')) {
+
+  if (name.endsWith(".pdf")) {
+
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-    let out = '';
+
+    let out = "";
+
     for (let i = 1; i <= pdf.numPages; i++) {
       const ct = await (await pdf.getPage(i)).getTextContent();
-      out += ct.items.map(i => i.str).join(' ') + ' ';
+      out += ct.items.map(it => it.str).join(" ") + " ";
     }
+
     return out;
   }
 
+  // 👉 CRITICAL FIX .value
   const result = await mammoth.extractRawText({ arrayBuffer: buf });
-  return result;
+
+  return String(result.value || "");
 }
 
 async function loadFiles() {
+
   for (const f of docs) {
+
     if (!fileTexts[f.name]) {
+
       try {
         const res = await fetch(f.url);
         const buf = await res.arrayBuffer();
+
         fileTexts[f.name] = await extractText(f.name, buf);
+
       } catch {
-        fileTexts[f.name] = '';
+        fileTexts[f.name] = "";
       }
+
     }
   }
 }
 
-// ---------------- NEW RESULT VIEWER HANDLER ----------------
+// ---------------- NEW RESULT VIEWER ----------------
 
 function displayAnswerViewer(answerHtml) {
+
   const viewer = document.getElementById("docResult");
   const area = document.getElementById("answerViewer");
 
@@ -116,10 +154,12 @@ function displayAnswerViewer(answerHtml) {
   area.style.display = "block";
 }
 
-// ---------------- GPT WORKER COMMUNICATION (UNCHANGED) ----------------
+// ---------------- GPT WORKER COMMUNICATION ----------------
 
 async function askWorker(question, contextChunks) {
+
   try {
+
     const res = await fetch(WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -130,37 +170,42 @@ async function askWorker(question, contextChunks) {
     });
 
     const data = await res.json();
+
     return data.answer || "No GPT response";
+
   } catch {
+
     return "Error contacting Worker.";
   }
 }
 
-// ---------------- HYBRID SEARCH (SAFE UPDATE) ----------------
+// ---------------- HYBRID SEARCH (FIXED ARMOR) ----------------
 
 async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
 
-  const queryInput = document.getElementById('searchQuery');
+  const queryInput = document.getElementById("searchQuery");
+
   const query = rawQuery || queryInput.value.trim();
 
   if (!query) return;
 
   if (!labelOverride) {
-    addMessage(query, 'user');
-    queryInput.value = '';
+    addMessage(query, "user");
+    queryInput.value = "";
   } else {
-    addMessage(labelOverride, 'user');
+    addMessage(labelOverride, "user");
   }
 
   await loadFiles();
 
   const terms = query.toLowerCase().split(/\s+/);
 
-  let docMatchesHtml = '';
+  let docMatchesHtml = "";
 
   for (const f of docs) {
 
-    const txt = fileTexts[f.name] || '';
+    const txt = fileTexts[f.name] || "";
+
     const sents = splitIntoSentences(txt);
 
     const matches = sents.filter(s =>
@@ -171,38 +216,37 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
 
       docMatchesHtml +=
         `<h4>${f.name}</h4><ul>` +
-        matches.slice(0,5).map(s =>
-          `<li>${highlightTerms(s, terms)}</li>`
-        ).join('') +
+        matches.slice(0, 5)
+          .map(s => `<li>${highlightTerms(s, terms)}</li>`)
+          .join("") +
         `</ul><a href="${f.url}" target="_blank">📂 View file</a>`;
     }
   }
 
-  const allText = Object.values(fileTexts).join(' ');
+  // 👉 FIXED CHUNK BUILDER USING allText
+  const allText = Object.values(fileTexts).join(" ");
+
   const chunks = [];
 
   for (let i = 0; i < allText.length; i += 2000) {
-    chunks.push(all.slice(i, i + 2000));
+    chunks.push(allText.slice(i, i + 2000));
   }
 
   const aiAnswer = await askWorker(query, chunks);
 
   const answerBlock =
-      `<div><strong>AI Response:</strong><br>` +
-      aiAnswer +
-      `</div>` +
-      (docMatchesHtml
-        ? `<div><strong>Relevant Docs:</strong><br>` + docMatchesHtml + `</div>`
-        : '');
+    `<div><strong>AI Response:</strong><br>` +
+    aiAnswer +
+    `</div>` +
+    (docMatchesHtml
+      ? `<div><strong>Relevant Docs:</strong><br>` + docMatchesHtml + `</div>`
+      : "");
 
-  // 👉 DISPLAY IN DEDICATED VIEWER
   displayAnswerViewer(answerBlock);
-
 }
- 
+
 // ---------------- REMOVE SUGGESTIONS FEATURE ----------------
-// THE FUNCTION BELOW REPLACES OLD generateDynamicSidebar()
-// Now it ONLY renders CATEGORIES, NOT TIPS
+// Only categories renderer remains
 
 function generateDynamicSidebar() {
 
@@ -213,36 +257,43 @@ function generateDynamicSidebar() {
     const c = d.summary || "General";
 
     if (!cats[c]) cats[c] = 0;
+
     cats[c]++;
 
   });
 
-  const ul = document.querySelector('.category-list');
-  ul.innerHTML = '';
+  const ul = document.querySelector(".category-list");
+
+  if (!ul) return;
+
+  ul.innerHTML = "";
 
   Object.keys(cats).forEach(c => {
 
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.textContent = `${c} (${cats[c]})`;
+
     ul.appendChild(li);
 
   });
 
 }
 
-// ---------------- RECENT ACTIVITY (UNCHANGED) ----------------
+// ---------------- RECENT ACTIVITY ----------------
 
 function renderRecentActivity() {
 
-  const ul = document.querySelector('.recent-activity ul');
+  const ul = document.querySelector(".recent-activity ul");
+
   if (!ul) return;
 
-  ul.innerHTML = '';
+  ul.innerHTML = "";
 
   recentActivity.forEach(item => {
 
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.textContent = item;
+
     ul.appendChild(li);
 
   });
@@ -252,14 +303,18 @@ function renderRecentActivity() {
 function logRecentActivity(action, content) {
 
   recentActivity.unshift(action + ": " + content);
+
   renderRecentActivity();
 
 }
 
-// ---------------- INIT UI ----------------
+// ---------------- INIT ----------------
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
 
   generateDynamicSidebar();
 
 });
+
+// expose search function for button onclick safety
+window.searchDocsHybrid = searchDocsHybrid;
