@@ -7,11 +7,10 @@ Object.defineProperty(window, 'fileTexts', {
 });
 
 let recentActivity = [];
-const OPENAI_API_KEY = "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"; // ⚠️ exposed in frontend
 
-const docs = [
-  // ... your docs array here (same as before)
-];
+// ---------------- CONFIG ----------------
+// Replace this with your actual deployed Worker URL
+const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev";
 
 // ---------------- DOM READY ----------------
 document.addEventListener('DOMContentLoaded', () => {
@@ -97,33 +96,19 @@ async function loadFiles() {
   }
 }
 
-// ---------------- OpenAI Request ----------------
-async function askOpenAIHybrid(question, contextChunks) {
+// ---------------- WORKER API ----------------
+async function askWorker(question, contextChunks) {
   try {
-    const answers = [];
-    for (const chunk of contextChunks) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "You are a helpful assistant for healthcare interface documentation and HL7/FHIR/MPI/EMPI guidance." },
-            { role: "user", content: `Answer the question using the context below. Highlight the source document references if applicable.\n\nQuestion: ${question}\nContext: ${chunk}` }
-          ],
-          temperature: 0.3
-        })
-      });
-      const data = await res.json();
-      answers.push(data.choices?.[0]?.message?.content || "");
-    }
-    return answers.join("\n\n"); // Combine chunked answers
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, docContext: contextChunks.join(" ") })
+    });
+    const data = await res.json();
+    return data.answer || "No GPT response";
   } catch (err) {
     console.error(err);
-    return "Error contacting OpenAI API.";
+    return "Error contacting Worker.";
   }
 }
 
@@ -141,14 +126,12 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
   }
 
   logRecentActivity('Searched', query);
-
   document.getElementById('loading').style.display = 'block';
   await loadFiles();
 
+  // Frontend search highlights
   const terms = query.toLowerCase().split(/\s+/);
   let docMatchesHtml = '';
-  let found = false;
-
   for (const f of docs) {
     const txt = fileTexts[f.name] || '';
     const sents = splitIntoSentences(txt);
@@ -156,22 +139,23 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
       t === 'ack' ? /ack|acknowledg/i.test(s) : s.toLowerCase().includes(t)
     ));
     if (matches.length) {
-      found = true;
-      docMatchesHtml += `<h4>${f.name}</h4><ul>${matches.slice(0, 5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul><a href="${f.url}" target="_blank">📂 View file</a>`;
-      logRecentActivity('Viewed', f.name, f.url);
+      docMatchesHtml += `<h4>${f.name}</h4><ul>${matches.slice(0,5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join('')}</ul>
+      <a href="${f.url}" target="_blank">📂 View file</a>`;
     }
   }
 
-  // Chunk large docs for GPT (~2000 chars each)
+  // Chunk large docs for Worker
   const allText = Object.values(fileTexts).join(' ');
   const contextChunks = [];
   for (let i = 0; i < allText.length; i += 2000) {
     contextChunks.push(allText.slice(i, i + 2000));
   }
 
-  const aiAnswer = await askOpenAIHybrid(query, contextChunks);
+  // Ask Worker (safe GPT call)
+  const aiAnswer = await askWorker(query, contextChunks);
 
-  const finalHtml = `<div style="margin-bottom:1em;"><strong>AI Response:</strong><br>${aiAnswer}</div>${docMatchesHtml ? `<div><strong>Relevant Document Sentences:</strong><br>${docMatchesHtml}</div>` : ''}`;
+  const finalHtml = `<div style="margin-bottom:1em;"><strong>AI Response:</strong><br>${aiAnswer}</div>
+                     ${docMatchesHtml ? `<div><strong>Relevant Document Sentences:</strong><br>${docMatchesHtml}</div>` : ''}`;
   addMessage(finalHtml);
 
   document.getElementById('loading').style.display = 'none';
@@ -184,7 +168,6 @@ function generateDynamicSidebar() {
 
   docs.forEach(d => {
     const txt = (d.summary + ' ' + d.name).toLowerCase();
-
     if (/interface|adt/.test(txt)) cats['🧩 Interface Specs'] = (cats['🧩 Interface Specs'] || 0) + 1;
     if (/error|ack/.test(txt)) cats['⚙️ HL7 Troubleshooting'] = (cats['⚙️ HL7 Troubleshooting'] || 0) + 1;
     if (/mpi|empi|fhir/.test(txt)) cats['🧠 Data Interoperability'] = (cats['🧠 Data Interoperability'] || 0) + 1;
@@ -221,12 +204,7 @@ function generateDynamicSidebar() {
 }
 
 function logRecentActivity(action, content, url = null) {
-  const item = {
-    type: action,
-    label: `${action}: ${content}`,
-    url,
-    searchTerm: action === 'Searched' ? content : null
-  };
+  const item = { type: action, label: `${action}: ${content}`, url, searchTerm: action === 'Searched' ? content : null };
   recentActivity.unshift(item);
   renderRecentActivity();
 }
