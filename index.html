@@ -4,27 +4,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Document Bot</title>
+
   <link rel="icon" href="./favicon.ico" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="./style.css" />
 </head>
+
 <body>
   <div class="layout">
+
     <!-- Left Sidebar -->
     <aside class="sidebar-left">
       <h2>📂 Categories</h2>
       <ul class="category-list"></ul>
-      <h2>💡 Suggestions</h2>
-      <ul class="tips-list"></ul>
+
+      <!-- MOVED SEARCHABLE TOPICS SECTION BELOW CATEGORIES -->
+      <div id="fileSummary" class="summary-box">
+
+        <h3>🔎 Results</h3>
+        <div id="resultArea" class="result-area">
+          <ul id="hybridResults"></ul>
+        </div>
+
+        <h3>📚 Searchable Topics</h3>
+        <ul id="fileList"></ul>
+
+        <button id="toggleSummary">Hide</button>
+      </div>
     </aside>
+
 
     <!-- Main Chat App -->
     <main class="main-content">
       <div class="chat-container">
+
         <header>
           <button id="toggleLeftSidebar" class="sidebar-toggle-btn">☰</button>
           📄 Document Bot
           <button id="toggleRightSidebar" class="sidebar-toggle-btn">📝</button>
+
           <label class="theme-switch">
             <span>Bright</span>
             <input id="themeToggle" type="checkbox">
@@ -33,21 +51,26 @@
           </label>
         </header>
 
+
         <div id="messages" class="messages"></div>
         <div id="loading" class="loading">🤖 Searching docs…</div>
+
 
         <div class="input-row">
           <input id="searchQuery" placeholder="Ask me something..." />
           <button onclick="searchDocsHybrid()">Send</button>
         </div>
 
-        <div id="fileSummary" class="summary-box">
-          <h3>📂 Searchable Topics</h3>
-          <ul id="fileList"></ul>
-          <button id="toggleSummary">Hide</button>
+
+        <!-- NEW AREA TO DISPLAY ANSWER FROM DOC OR AI -->
+        <div id="answerViewer" class="answer-viewer">
+          <h3>🤖 Result</h3>
+          <div id="docResult"></div>
         </div>
+
       </div>
     </main>
+
 
     <!-- Right Sidebar -->
     <aside class="sidebar-right">
@@ -55,18 +78,22 @@
         <h3>📝 Notes</h3>
         <textarea placeholder="Write notes here..."></textarea>
       </div>
+
       <div class="recent-activity">
         <h4>🔄 Recent</h4>
         <ul id="recentList"></ul>
       </div>
     </aside>
+
   </div>
+
 
   <!-- Dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
   <script src="./main.js"></script>
+
 </body>
 </html>
-
