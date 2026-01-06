@@ -263,6 +263,22 @@ body:not(.dark) #hybridResults li {
   align-items:center;
 }
 
+.category-list li a,
+#fileList li a {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.category-list li a:hover,
+#fileList li a:hover {
+  background: #007bff;
+}
+
+
 /* Notepad & Recent */
 .sidebar-right textarea {
   width:100%;
