@@ -6,8 +6,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 let fileTexts = {};
 Object.defineProperty(window, "fileTexts", { get: () => fileTexts });
 let recentActivity = [];
+let filesLoaded = false; // flag to load PDFs/docx only once
 
-const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev"; // GPT Worker endpoint
+const WORKER_URL = "https://hybrid-bot-worker.hybridbot.workers.dev";
 
 // ---------------- DOCS ----------------
 const docs = [
@@ -20,7 +21,6 @@ const docs = [
   { name: "Interface-Design-Document.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Interface-Design-Document.docx", summary: "Designing healthcare interface workflows" },
   { name: "HIE-Monitoring-Tool-SOP.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/HIE-Monitoring-Tool-SOP.docx", summary: "Standard operating procedure for HIE monitoring tool" },
   { name: "J2-Ops-Monitor-Thresholds-and-Management.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/J2-Ops-Monitor-Thresholds-and-Management.docx", summary: "Operations monitoring thresholds and management for J2" },
-  { name: "InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/InterfaceInf-from-GMS-Amin-2022-08-05-Series-Specific.docx", summary: "Series-specific GMS Amin interface information" },
   { name: "IntelliBridge-Enterprise-IBE-Support-SOP.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/IntelliBridge-Enterprise-IBE-Support-SOP.docx", summary: "Support SOP for IntelliBridge Enterprise (IBE)" },
   { name: "GoAnyWhere-Trobleshooting-Guide.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/GoAnyWhere-Trobleshooting-Guide.docx", summary: "Troubleshooting guide for GoAnywhere" },
   { name: "Elink-and-Capsule.docx", url: "https://raw.githubusercontent.com/nikhilgrd64/BOT/main/Files/Elink-and-Capsule.docx", summary: "Integration guide for Elink and Capsule" },
@@ -75,9 +75,9 @@ function highlightTerms(text, terms) {
 
 function splitIntoSentences(txt) {
   if (!txt) return [];
+  txt = String(txt);
   const parts = txt.match(/[^.!?]+[.!?]+/g);
-  if (!parts) return [txt.trim()];
-  return parts.map(s => s.trim());
+  return parts ? parts.map(s => s.trim()) : [txt.trim()];
 }
 
 // ---------------- FILE LOADING ----------------
@@ -96,7 +96,8 @@ async function extractText(name, buf) {
   return String(result.value || "");
 }
 
-async function loadFiles() {
+async function loadFilesOnce() {
+  if (filesLoaded) return; // skip if already loaded
   for (const f of docs) {
     try {
       const res = await fetch(f.url);
@@ -106,6 +107,7 @@ async function loadFiles() {
       fileTexts[f.name] = "";
     }
   }
+  filesLoaded = true;
 }
 
 // ---------------- LOADING INDICATOR ----------------
@@ -124,7 +126,6 @@ async function askWorker(question, chunks) {
       body: JSON.stringify({ question, docContext: chunks.join(" ") })
     });
     const data = await res.json();
-    if (data.error) return "AI service sleeping until quota wakes.";
     return data.answer || "No GPT response";
   } catch {
     return "AI worker unreachable.";
@@ -135,22 +136,22 @@ async function askWorker(question, chunks) {
 function fuseSearch(query) {
   const fuse = new Fuse(
     Object.keys(fileTexts).map(name => ({ name, text: fileTexts[name] })),
-    { keys: ["text", "name"], includeScore: true, threshold: 0.4 }
+    { keys: ["text","name"], includeScore: true, threshold: 0.4 }
   );
   return fuse.search(query);
 }
 
 // ---------------- HYBRID SEARCH ----------------
 async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
+  await loadFilesOnce(); // load only once
+
   const queryInput = document.getElementById("searchQuery");
   const query = rawQuery || (queryInput ? queryInput.value.trim() : "");
   if (!query) return;
 
   addMessage(labelOverride || query, "user");
   if(queryInput) queryInput.value = "";
-
   setLoading(true);
-  await loadFiles();
 
   const terms = query.toLowerCase().split(/\s+/);
   let docMatchesHtml = "";
@@ -161,7 +162,7 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
     const matches = sents.filter(s => terms.every(t => s.toLowerCase().includes(t)));
     if (matches.length) {
       docMatchesHtml += `<h4>${f.name}</h4><ul>` +
-        matches.slice(0, 5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join("") +
+        matches.slice(0,5).map(s => `<li>${highlightTerms(s, terms)}</li>`).join("") +
         `</ul>`;
     }
   }
@@ -169,19 +170,18 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
   const fuseHits = fuseSearch(query);
   if (fuseHits.length) {
     docMatchesHtml += `<h4>Fuse Semantic Hits</h4><ul>` +
-      fuseHits.slice(0,5).map(h => `<li>${h.item.name} <button onclick="viewFile('${h.item.name}')">View File</button></li>`).join("") +
+      fuseHits.slice(0,5).map(h => 
+        `<li>${h.item.name} <button onclick="viewFile('${h.item.name}')">View File</button></li>`).join("") +
       `</ul>`;
   }
 
   const allText = Object.values(fileTexts).join(" ");
   const chunks = [];
-  for (let i = 0; i < allText.length; i += 2000) chunks.push(allText.slice(i, i + 2000));
-
+  for (let i=0;i<allText.length;i+=2000) chunks.push(allText.slice(i,i+2000));
   const aiAnswer = await askWorker(query, chunks);
 
-  const answerBlock =
-    `<div><strong>AI Response</strong><br>` + aiAnswer + `</div>` +
-    (docMatchesHtml ? `<div><strong>Relevant</strong><br>` + docMatchesHtml + `</div>` : "");
+  const answerBlock = `<div><strong>AI Response</strong><br>${aiAnswer}</div>` +
+    (docMatchesHtml ? `<div><strong>Relevant</strong><br>${docMatchesHtml}</div>` : "");
 
   displayAnswerViewer(answerBlock);
   logRecentActivity("Search", query);
@@ -199,7 +199,7 @@ function displayAnswerViewer(html) {
 
 // ---------------- VIEW FILE ----------------
 function viewFile(fileName) {
-  const file = docs.find(d => d.name === fileName);
+  const file = docs.find(d => d.name===fileName);
   if (!file) return;
   window.open(file.url, "_blank");
 }
@@ -214,7 +214,7 @@ function generateDynamicSidebar() {
   });
 
   const ul = document.querySelector(".category-list");
-  if (!ul) return;
+  if(!ul) return;
   ul.innerHTML = "";
 
   Object.keys(cats).forEach(c => {
@@ -225,16 +225,13 @@ function generateDynamicSidebar() {
 }
 
 function populateFilesByCategory(category) {
-  const fileList = document.getElementById("fileList");
-  if(!fileList) return;
-  fileList.innerHTML = "";
-
   const files = docs.filter(d => (d.summary || "General") === category);
-  files.forEach(f => {
-    const li = document.createElement("li");
-    li.innerHTML = `<a href="#" onclick="viewFile('${f.name}')">${f.name}</a>`;
-    fileList.appendChild(li);
-  });
+  const html = files.map(f => {
+    const txt = fileTexts[f.name] || "";
+    const snippet = txt.split(".").slice(0,2).join(". ") + ".";
+    return `<h4>${f.name}</h4><p>${snippet}</p><button onclick="viewFile('${f.name}')">View File</button>`;
+  }).join("");
+  displayAnswerViewer(html);
 }
 
 // ---------------- RECENT ----------------
@@ -251,22 +248,23 @@ function renderRecentActivity() {
 
 function logRecentActivity(action, content) {
   recentActivity.unshift(action + ": " + content);
-  if (recentActivity.length > 10) recentActivity.pop();
+  if(recentActivity.length>10) recentActivity.pop();
   renderRecentActivity();
 }
 
 // ---------------- INIT ----------------
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadFilesOnce(); // preload all files once on page load
   setLoading(false);
   generateDynamicSidebar();
   renderRecentActivity();
 
   const themeToggle = document.getElementById("themeToggle");
-  if (themeToggle) {
-    themeToggle.addEventListener("change", () => {
+  if(themeToggle){
+    themeToggle.addEventListener("change",()=>{
       document.body.classList.toggle("dark", themeToggle.checked);
       const knob = document.querySelector(".slider-knob");
-      if (knob) knob.style.transform = themeToggle.checked ? "translateX(24px)" : "none";
+      if(knob) knob.style.transform = themeToggle.checked ? "translateX(24px)" : "none";
     });
   }
 });
