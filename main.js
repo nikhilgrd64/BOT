@@ -7,13 +7,13 @@ Object.defineProperty(window, 'fileTexts', {
 });
 
 let recentActivity = [];
-
 const OPENAI_API_KEY = "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"; // ⚠️ exposed in frontend
 
 const docs = [
-  // ... your docs array as-is
+  // ... your docs array here (same as before)
 ];
 
+// ---------------- DOM READY ----------------
 document.addEventListener('DOMContentLoaded', () => {
   const fileList = document.getElementById('fileList');
   docs.forEach(doc => {
@@ -47,8 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRecentActivity();
 });
 
-// ---------------- Basic Helpers ----------------
-
+// ---------------- Helpers ----------------
 function addMessage(html, sender = 'bot') {
   const msg = document.createElement('div');
   msg.className = `message ${sender}`;
@@ -98,27 +97,30 @@ async function loadFiles() {
   }
 }
 
-// ---------------- OpenAI Hybrid Function ----------------
-
-async function askOpenAIHybrid(question, docContext) {
+// ---------------- OpenAI Request ----------------
+async function askOpenAIHybrid(question, contextChunks) {
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "You are a helpful assistant for healthcare interface documentation and HL7/FHIR/MPI/EMPI guidance." },
-          { role: "user", content: `Answer the question using the context below. Highlight the source document references if applicable.\n\nQuestion: ${question}\nContext: ${docContext}` }
-        ],
-        temperature: 0.3
-      })
-    });
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || "AI could not generate a response.";
+    const answers = [];
+    for (const chunk of contextChunks) {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a helpful assistant for healthcare interface documentation and HL7/FHIR/MPI/EMPI guidance." },
+            { role: "user", content: `Answer the question using the context below. Highlight the source document references if applicable.\n\nQuestion: ${question}\nContext: ${chunk}` }
+          ],
+          temperature: 0.3
+        })
+      });
+      const data = await res.json();
+      answers.push(data.choices?.[0]?.message?.content || "");
+    }
+    return answers.join("\n\n"); // Combine chunked answers
   } catch (err) {
     console.error(err);
     return "Error contacting OpenAI API.";
@@ -126,7 +128,6 @@ async function askOpenAIHybrid(question, docContext) {
 }
 
 // ---------------- Hybrid Search + GPT ----------------
-
 async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
   const queryInput = document.getElementById('searchQuery');
   const query = rawQuery || queryInput.value.trim();
@@ -161,10 +162,14 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
     }
   }
 
-  // Combine all docs text (5000 chars max) for GPT context
-  const contextText = Object.values(fileTexts).join(' ').slice(0, 5000);
+  // Chunk large docs for GPT (~2000 chars each)
+  const allText = Object.values(fileTexts).join(' ');
+  const contextChunks = [];
+  for (let i = 0; i < allText.length; i += 2000) {
+    contextChunks.push(allText.slice(i, i + 2000));
+  }
 
-  const aiAnswer = await askOpenAIHybrid(query, contextText);
+  const aiAnswer = await askOpenAIHybrid(query, contextChunks);
 
   const finalHtml = `<div style="margin-bottom:1em;"><strong>AI Response:</strong><br>${aiAnswer}</div>${docMatchesHtml ? `<div><strong>Relevant Document Sentences:</strong><br>${docMatchesHtml}</div>` : ''}`;
   addMessage(finalHtml);
@@ -172,8 +177,7 @@ async function searchDocsHybrid(rawQuery = null, labelOverride = null) {
   document.getElementById('loading').style.display = 'none';
 }
 
-// ---------------- Sidebar, Activity, Theme ----------------
-
+// ---------------- Sidebar / Tips / Activity ----------------
 function generateDynamicSidebar() {
   const cats = {};
   const tips = new Map();
@@ -255,4 +259,3 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   document.getElementById('themeToggle').checked = isDark;
 }
-
