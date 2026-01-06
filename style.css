@@ -170,6 +170,8 @@ body.dark .message.bot {
   gap:0.5rem;
   border-top:1px solid #ddd;
   background:#f0f0f0;
+  z-index:1;
+  position:relative;
 }
 
 body.dark .input-row {
@@ -203,20 +205,26 @@ body.dark .input-row input {
   background:#0056b3;
 }
 
-/* Answer Viewer */
+/* Answer Viewer - Sticky & Shadow */
 .answer-viewer {
-  padding:0.75rem;
+  padding:1rem;
   background:#f2f2f2;
-  border-top:1px solid #ddd;
+  border-bottom:1px solid #ddd;
   max-height:240px;
   overflow-y:auto;
-  display:none;
+  display:block;
+  position:sticky;
+  top:0;
+  z-index:2;
+  box-shadow:0 2px 6px rgba(0,0,0,0.12);
+  transition:background 0.3s, box-shadow 0.3s;
 }
 
 body.dark .answer-viewer {
   background:#262626;
   border-color:#555;
   color:#eaeaea;
+  box-shadow:0 2px 6px rgba(0,0,0,0.4);
 }
 
 /* Result area inside sidebar */
